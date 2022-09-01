@@ -1,12 +1,13 @@
 '''
 创建人员: Nerium
-创建日期: 2022/8/31
+创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/8/31
+更改日期: 2022/09/01
 '''
 
 from piece.piecedefine import *
 
+#通过流程主类中的原始、比对序列信息，根据id、比对序列坐标找到原始序列坐标
 def originpos(mainc, id, finalpos) :
     x, y, originstr, finalstr = 0, 0, mainc._origindata[id], mainc._comparedata[id]
     while y < finalpos :
