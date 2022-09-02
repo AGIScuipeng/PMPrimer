@@ -58,4 +58,5 @@ class piecemain() :
         #保存对比后的数据
         self.aftercmp(pcds)
 
+        #print(pcds.detectarea(self._comparedata))
         #print(originpos(self, 'sth2', 13))
