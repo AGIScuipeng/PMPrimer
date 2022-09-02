@@ -39,9 +39,10 @@ class piecedesign() :
     #挖掘所有保守区域
     def detectarea(self, seqdict) :
         self._base.baselog(BASE_DEBUG_LEVEL1, '探测比对后序列的所有保守区域...', ends='')
-        posl, posr, seqlen, posmem = 1, 1, len(next(iter(seqdict.values()))), []
+        posl, posr, seqlen, posmem, mem = 1, 1, len(next(iter(seqdict.values()))), [], [0.0]
         while posr < seqlen :
-            while evaluate(seqdict, posl, posr) > 0.6 and posr < seqlen : posr += 1
-            posmem.append((posl, posr)); posr += 1; posl = posr
+            while evaluate(seqdict, posl, posr, mem) > 0.8 and posr < seqlen : posr += 1
+            #后续可以指定保守区域的最小长度再判断是否添加
+            posmem.append((posl, posr)); posr += 1; posl = posr; mem[0] = 0.0
         self._base.baselog(BASE_DEBUG_LEVEL1, '\r比对后序列的所有保守区域探测完毕')
         return posmem

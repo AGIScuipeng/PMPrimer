@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/01
+更改日期: 2022/09/02
 '''
 
 from piece.piecedefine import *
@@ -17,12 +17,17 @@ def originpos(mainc, id, finalpos) :
         else : y += 1
     return x
 
-def evaluate(seqdict, posl, posr) :
-    allseq, frac = list(seqdict.values()), 0.0
+#计算对比序列区间的保守度
+def evaluate(seqdict, posl, posr, mem) :
+    allseq = list(seqdict.values())
     seqcnt = len(allseq)
+    mem[0] += next(iter(Counter([seq[posr-1] for seq in allseq]).values()))
+    '''
     for i in range(posl, posl+1 if posr-posl == 0 else posr+1) :
         frac += (next(iter(Counter([seq[i-1] for seq in allseq]).values())) / seqcnt)
     return frac/(posr-posl+1)
+    '''
+    return (mem[0]/seqcnt)/(posr-posl+1)
 
 #基础模块，log等功能都在其中
 class piecebase() :
