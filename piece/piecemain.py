@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/01
+更改日期: 2022/09/02
 '''
 
 from piece.piecebase import *
@@ -29,34 +29,43 @@ class piecemain() :
     def getorigin(self) :
         if self.args.file is not None :
             with open(self.args.file, 'r') as ff :
-                slt_id = ''
+                slt_id, slt_seq = '', ''
                 for line in ff :
-                    if '>' in line : slt_id = line[1:].strip()
-                    else : self._origindata.update({slt_id: line.strip()})
+                    if '>' in line :  
+                        if slt_id != '' and slt_seq != '' : self._origindata.update({slt_id: slt_seq})
+                        slt_id = line[1:].strip(); slt_seq = ''
+                    else : slt_seq += line.strip()
         #print(self._origindata)
 
     #对比数据的保存
     def aftercmp(self, pcds) :
         if pcds.tmpfile_path is not None :
             with open(pcds.tmpfile_path, 'r') as ff :
-                slt_id = ''
+                slt_id, slt_seq = '', ''
                 for line in ff :
-                    if '>' in line : slt_id = line[1:].strip()
-                    else : self._comparedata.update({slt_id: line.strip()})
-        #print(self._comparedata)
+                    if '>' in line :
+                        if slt_id != '' and slt_seq != '' : self._comparedata.update({slt_id: slt_seq})
+                        slt_id = line[1:].strip(); slt_seq = ''
+                    else : slt_seq += line.strip()
+                if slt_id != '' and slt_seq != '' : self._comparedata.update({slt_id: slt_seq})
 
     #主流程函数
     def maintrunk(self) :
         #先保存原始数据
         self.getorigin()
 
-        #调用muscle进行多序列比对
-        #if self.args.alldesign is not None :
-        pcds = piecedesign(self._base, self._todo_path, self.args.file)
-        pcds.callmuscle()
+        #如果开启，则调用muscle进行多序列比对；探查保守区间；循环论证最佳引物
+        if self.args.alldesign is not None :
+            pcds = piecedesign(self._base, self._todo_path, self.args.file)
+            if 'muscle' in self.args.alldesign :
+                pcds.callmuscle()
 
-        #保存对比后的数据
-        self.aftercmp(pcds)
+                #保存对比后的数据
+                self.aftercmp(pcds)
 
-        #print(pcds.detectarea(self._comparedata))
+            #挖掘出所有的保守区间
+            conser = pcds.detectarea(self._comparedata if 'muscle' in self.args.alldesign else self._origindata)
+            #非保守区间标准差
+            allstd = pcds.calc_non_conserve_area_std(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, 1, 20)
+            print(allstd)
         #print(originpos(self, 'sth2', 13))
