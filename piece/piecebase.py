@@ -32,8 +32,13 @@ def calc_conserve_termina(seqdict, posl, posr, mem, rate) :
 
     return (mem[0]/seqcnt) >= rate
 
+#计算列表的标准差
 def calc_std(num_list) :
     return math.sqrt(sum([(x - sum(num_list) / len(num_list)) ** 2 for x in num_list]) / len(num_list))
+
+#根据列表1对两个列表进行排序
+def rank_lists_byfirst(list1, list2) :
+    return [list(x) for x in zip(*(sorted(zip(list1, list2), key=lambda x: (x[0], x[1]))))]
 
 #基础模块，log等功能都在其中
 class piecebase() :

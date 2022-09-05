@@ -39,7 +39,7 @@ class piecedesign() :
         return bindings.designPrimers(target, opt)
 
     #挖掘所有保守区域
-    def detectarea(self, seqdict, threshold=0.95, minlen=15) :
+    def detect_conser_area(self, seqdict, threshold=0.95, minlen=15) :
         self._base.baselog(BASE_DEBUG_LEVEL1, '探测比对后序列的所有保守区域...', ends='')
         posl, posr, seqlen, posmem, mem = 1, 1, len(next(iter(seqdict.values()))), [], [0.0]
 
@@ -57,7 +57,7 @@ class piecedesign() :
         return [[rang[1]+1, posmem[idx+1][0]-1] for idx, rang in enumerate(posmem) if idx != posmem_len-1 and posmem[idx+1][0] - rang[1] > 1]
 
     #计算非保守区域的标准差，结果越接近0，多样性越高
-    def calc_non_conserve_area_std(self, seqdict, posl, posr) :
+    def calc_non_conser_area_std(self, seqdict, posl, posr) :
         seqcnt, allstd = len(seqdict.values()), []
         self._base.debuglog(BASE_DEBUG_LEVEL3, 'A\tT\tC\tG\t-')
 
