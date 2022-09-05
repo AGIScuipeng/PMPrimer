@@ -46,7 +46,7 @@ class piecedesign() :
         while posr < seqlen :
             while calc_conserve_continue(seqdict, posl, posr, mem) >= threshold and posr < seqlen : posr += 1
             #后续可以指定保守区域的最小长度再判断是否添加
-            if posr - posl + 1 >= minlen : posmem.append((posl, posr))
+            if posr - posl + 1 >= minlen : posmem.append([posl, posr])
             posr += 1; posl = posr; mem[0] = 0.0
         self._base.baselog(BASE_DEBUG_LEVEL1, '\r比对后序列的所有保守区域探测完毕')
         return posmem
@@ -54,7 +54,7 @@ class piecedesign() :
     #挖掘所有非保守区域
     def detect_non_conser_area(self, posmem) :
         posmem_len = len(posmem)
-        return [(rang[1]+1, posmem[idx+1][0]-1) for idx, rang in enumerate(posmem) if idx != posmem_len-1 and posmem[idx+1][0] - rang[1] > 1]
+        return [[rang[1]+1, posmem[idx+1][0]-1] for idx, rang in enumerate(posmem) if idx != posmem_len-1 and posmem[idx+1][0] - rang[1] > 1]
 
     #计算非保守区域的标准差，结果越接近0，多样性越高
     def calc_non_conserve_area_std(self, seqdict, posl, posr) :

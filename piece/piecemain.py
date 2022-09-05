@@ -72,6 +72,13 @@ class piecemain() :
             self._base.baselog(BASE_DEBUG_LEVEL1, '非保守区间列表：{0} \nList Of Non Conservative Area is : {0}'.format(nonconser))
 
             #非保守区间标准差
+            allstd = []
             for rang in nonconser :
-                allstd = pcds.calc_non_conserve_area_std(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
-                self._base.baselog(BASE_DEBUG_LEVEL1, '非保守区间序列的标准差为：{0} \nStd Of Non Conservative Area is : {0}'.format(allstd))
+                areastd = pcds.calc_non_conserve_area_std(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
+                allstd.append(areastd)
+                self._base.debuglog(BASE_DEBUG_LEVEL2, '非保守区间 {0} 的标准差为：{1} \nStd Of Non Conservative {0} Area is : {1}'.format([rang[0], rang[1]], areastd))
+
+            #非保守区间根据标准差进行排名
+            stdlist, arealist = [list(x) for x in zip(*(sorted(zip(allstd, nonconser), key=lambda x: (x[0], x[1]))))]
+            self._base.baselog(BASE_DEBUG_LEVEL1, '非保守区间标准差排名为：/ Non Conservative Area Rank Is :')
+            for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, 'std : {}; area : {}'.format(std, arealist[idx]))
