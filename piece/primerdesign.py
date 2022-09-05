@@ -1,8 +1,8 @@
 '''
 创建人员: Nerium
-创建日期: 2022/8/31
+创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/02
+更改日期: 2022/09/05
 '''
 
 from piece.piecedefine import *
@@ -39,22 +39,29 @@ class piecedesign() :
         return bindings.designPrimers(target, opt)
 
     #挖掘所有保守区域
-    def detectarea(self, seqdict) :
+    def detectarea(self, seqdict, threshold=0.95, minlen=15) :
         self._base.baselog(BASE_DEBUG_LEVEL1, '探测比对后序列的所有保守区域...', ends='')
         posl, posr, seqlen, posmem, mem = 1, 1, len(next(iter(seqdict.values()))), [], [0.0]
+
         while posr < seqlen :
-            while calc_conserve_continue(seqdict, posl, posr, mem) >= 0.8 and posr < seqlen : posr += 1
+            while calc_conserve_continue(seqdict, posl, posr, mem) >= threshold and posr < seqlen : posr += 1
             #后续可以指定保守区域的最小长度再判断是否添加
-            #if posr - posl + 1 >= 15 : posmem.append((posl, posr))
-            posmem.append((posl, posr))
+            if posr - posl + 1 >= minlen : posmem.append((posl, posr))
             posr += 1; posl = posr; mem[0] = 0.0
         self._base.baselog(BASE_DEBUG_LEVEL1, '\r比对后序列的所有保守区域探测完毕')
         return posmem
 
+    #挖掘所有非保守区域
+    def detect_non_conser_area(self, posmem) :
+        posmem_len = len(posmem)
+        return [(rang[1]+1, posmem[idx+1][0]-1) for idx, rang in enumerate(posmem) if idx != posmem_len-1 and posmem[idx+1][0] - rang[1] > 1]
+
     #计算非保守区域的标准差，结果越接近0，多样性越高
     def calc_non_conserve_area_std(self, seqdict, posl, posr) :
         seqcnt, allstd = len(seqdict.values()), []
+        self._base.debuglog(BASE_DEBUG_LEVEL3, 'A\tT\tC\tG\t-')
+
         for i in range(posl, posl+1 if posr-posl == 0 else posr+1) :
             self._base.debuglog(BASE_DEBUG_LEVEL3, [Counter([seq[i-1] for seq in seqdict.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST])
             allstd.append(calc_std([Counter([seq[i-1] for seq in seqdict.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST]))
-        return calc_std(allstd)
+        return round(calc_std(allstd), 8)

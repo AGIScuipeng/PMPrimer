@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/02
+更改日期: 2022/09/05
 '''
 
 from piece.piecebase import *
@@ -35,7 +35,7 @@ class piecemain() :
                         if slt_id != '' and slt_seq != '' : self._origindata.update({slt_id: slt_seq})
                         slt_id = line[1:].strip(); slt_seq = ''
                     else : slt_seq += line.strip()
-        #print(self._origindata)
+                if slt_id != '' and slt_seq != '' : self._comparedata.update({slt_id: slt_seq})
 
     #对比数据的保存
     def aftercmp(self, pcds) :
@@ -65,7 +65,13 @@ class piecemain() :
 
             #挖掘出所有的保守区间
             conser = pcds.detectarea(self._comparedata if 'muscle' in self.args.alldesign else self._origindata)
+            self._base.baselog(BASE_DEBUG_LEVEL1, '保守区间列表：{0} \nList Of Conservative Area is : {0}'.format(conser))
+
+            #挖掘出所有的非保守区间
+            nonconser = pcds.detect_non_conser_area(conser)
+            self._base.baselog(BASE_DEBUG_LEVEL1, '非保守区间列表：{0} \nList Of Non Conservative Area is : {0}'.format(nonconser))
+
             #非保守区间标准差
-            allstd = pcds.calc_non_conserve_area_std(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, 1, 20)
-            print(allstd)
-        #print(originpos(self, 'sth2', 13))
+            for rang in nonconser :
+                allstd = pcds.calc_non_conserve_area_std(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
+                self._base.baselog(BASE_DEBUG_LEVEL1, '非保守区间序列的标准差为：{0} \nStd Of Non Conservative Area is : {0}'.format(allstd))
