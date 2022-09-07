@@ -20,25 +20,32 @@ def originpos(mainc, id, finalpos) :
 
 #计算对比序列区间的保守度：延续法
 def calc_conserve_continue(seqdict, posl, posr, mem) :
-    seqcnt = len(seqdict.values())
-    mem[0] += next(iter(Counter([seq[posr-1] for seq in seqdict.values()]).values()))
+    seqcnt, mem[1] = len(seqdict.values()), mem[0]
+    mem[0] += Counter([seq[posr-1] for seq in seqdict.values()]).most_common(1)[0][1]
 
     return (mem[0]/seqcnt)/(posr-posl+1)
 
 #计算对比序列区间的保守度：中断法（不到阈值立刻终止）
 def calc_conserve_termina(seqdict, posl, posr, mem, rate) :
     seqcnt = len(seqdict.values())
-    mem[0] += next(iter(Counter([seq[posr-1] for seq in seqdict.values()]).values()))
+    mem[0] += Counter([seq[posr-1] for seq in seqdict.values()]).most_common(1)[0][1]
 
     return (mem[0]/seqcnt) >= rate
 
 #计算列表的标准差
 def calc_std(num_list) :
-    return math.sqrt(sum([(x - sum(num_list) / len(num_list)) ** 2 for x in num_list]) / len(num_list))
+    list_len = len(num_list)
+    return math.sqrt(sum([(x - sum(num_list) / list_len) ** 2 for x in num_list]) / list_len)
+
+def calc_cv_value(num_list) :
+    return calc_std(num_list)/(sum(num_list)/len(num_list))
+
+def calc_n_divide_average(num_list) :
+    return len(num_list)**2/sum(num_list)
 
 #根据列表1对两个列表进行排序
-def rank_lists_byfirst(list1, list2) :
-    return [list(x) for x in zip(*(sorted(zip(list1, list2), key=lambda x: (x[0], x[1]))))]
+def rank_lists_byfirst(list1, list2, reverse=False) :
+    return [list(x) for x in zip(*(sorted(zip(list1, list2), key=lambda x: (x[0], x[1]), reverse=reverse)))]
 
 #基础模块，log等功能都在其中
 class piecebase() :
