@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/06
+更改日期: 2022/09/08
 '''
 
 from piece.piecebase import *
@@ -64,34 +64,32 @@ class piecemain() :
                 self.aftercmp(pcds)
 
             #挖掘出所有符合条件的保守区间
-            conser = pcds.detect_conser_area(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, threshold=0.95)
+            conser = pcds.detect_conser_area(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, threshold=0.95, minlen=1)
             self._base.baselog(BASE_DEBUG_LEVEL1, '保守区间列表：{0} \nList Of Conservative Area is : {0}'.format(conser))
 
             #挖掘出所有符合条件的非保守区间
-            nonconser = pcds.detect_non_conser_area(conser)
+            nonconser = pcds.detect_non_conser_area(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, conser)
             self._base.baselog(BASE_DEBUG_LEVEL1, '非保守区间列表：{0} \nList Of Non Conservative Area is : {0}'.format(nonconser))
 
             #非保守区间标准差
-            '''
             allstd = []
             for rang in nonconser :
-                areastd = pcds.calc_non_conser_area_std(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
+                areastd = pcds.calc_non_conser_area_diverse(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
                 allstd.append(areastd)
-                self._base.debuglog(BASE_DEBUG_LEVEL2, '非保守区间 {0} 的标准差为：{1} \nStd Of Non Conservative {0} Area is : {1}'.format([rang[0], rang[1]], areastd))
+                self._base.debuglog(BASE_DEBUG_LEVEL2, '非保守区间 {0} 的香农系数为：{1} \nStd Of Non Conservative {0} Area is : {1}'.format([rang[0], rang[1]], areastd))
 
-            #非保守区间根据标准差进行排名
-
+            #非保守区间的多样性进行排名
             stdlist, arealist = rank_lists_byfirst(allstd, nonconser, reverse=True)
-            self._base.baselog(BASE_DEBUG_LEVEL1, '非保守区间标准差排名为：/ Non Conservative Area Rank Is :')
+            self._base.baselog(BASE_DEBUG_LEVEL1, '\n非保守区间多样性排名为：/ Non Conservative Area Rank Is :')
             for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tstd : {};\tarea : {}'.format(idx+1, std, arealist[idx]))
-            '''
+
+            #所有区间的多样性排名
             allarea = conser+nonconser
             allstd = []
             for rang in allarea : 
-                areastd = pcds.calc_non_conser_area_std(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
+                areastd = pcds.calc_non_conser_area_diverse(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
                 allstd.append(areastd)
-            allarea = [i+['conser'] if i in conser else i+['nonconser'] for i in allarea]#['conser']*len(conser) + ['nonconser']*len(nonconser)
-            stdlist, arealist = rank_lists_byfirst(allstd, allarea)#, reverse=True)
+            stdlist, arealist = rank_lists_byfirst(allstd, allarea, reverse=True)
             self._base.baselog(BASE_DEBUG_LEVEL1, '\n所有区间多样性排名为：/ All Area Rank Is :')
             for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tstd : {};\tarea : {}'.format(idx+1, std, arealist[idx]))
 

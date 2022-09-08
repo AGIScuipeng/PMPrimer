@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/05
+更改日期: 2022/09/08
 '''
 
 from piece.piecedefine import *
@@ -42,6 +42,10 @@ def calc_cv_value(num_list) :
 
 def calc_n_divide_average(num_list) :
     return len(num_list)**2/sum(num_list)
+
+#列表作为一个系统，计算其香农熵
+def calc_shannon_entropy(num_list) :
+    return -sum([p*math.log(p, len(num_list)) for p in num_list if p])
 
 #根据列表1对两个列表进行排序
 def rank_lists_byfirst(list1, list2, reverse=False) :
