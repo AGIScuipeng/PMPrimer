@@ -71,17 +71,18 @@ class piecemain() :
             nonconser = pcds.detect_non_conser_area(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, conser)
             self._base.baselog(BASE_DEBUG_LEVEL1, '非保守区间列表 / List Of Non Conservative Area is : \n{0}'.format(nonconser))
 
-            #非保守区间标准差
-            allshannon = []
-            for rang in nonconser :
-                areashannon = pcds.calc_area_diverse(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
-                allshannon.append(areashannon)
-                self._base.debuglog(BASE_DEBUG_LEVEL2, '非保守区间 {0} 的香农系数为：{1} \nScore Of Non Conservative {0} Area is : {1}'.format([rang[0], rang[1]], areashannon))
+            if 'rank' in self.args.alldesign :
+                #非保守区间标准差
+                allshannon = []
+                for rang in nonconser :
+                    areashannon = pcds.calc_area_diverse(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
+                    allshannon.append(areashannon)
+                    self._base.debuglog(BASE_DEBUG_LEVEL2, '非保守区间 {0} 的香农系数为：{1} \nScore Of Non Conservative {0} Area is : {1}'.format([rang[0], rang[1]], areashannon))
 
-            #非保守区间的多样性进行排名
-            stdlist, arealist = rank_lists_byfirst(allshannon, nonconser, reverse=True)
-            self._base.baselog(BASE_DEBUG_LEVEL1, '\n非保守区间多样性排名为：/ Non Conservative Area Rank Is :')
-            for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
+                #非保守区间的多样性进行排名
+                stdlist, arealist = rank_lists_byfirst(allshannon, nonconser, reverse=True)
+                self._base.baselog(BASE_DEBUG_LEVEL1, '\n非保守区间多样性排名为：/ Non Conservative Area Rank Is :')
+                for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
 
             if 'rankall' in self.args.alldesign :
                 #所有区间的多样性排名
@@ -93,5 +94,11 @@ class piecemain() :
                 stdlist, arealist = rank_lists_byfirst(allshannon, allarea, reverse=True)
                 self._base.baselog(BASE_DEBUG_LEVEL1, '\n所有区间多样性排名为：/ All Area Rank Is :')
                 for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
-
+'''
             #根据hypertype进行分析和后续的引物设计
+            for rang in conser :
+                alltype = pcds.detect_hypertype(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
+                print('Area {} : {}'.format(rang, len(alltype)))
+                if len(alltype) < 10 :
+                    for t in alltype : self._base.debuglog(BASE_DEBUG_LEVEL1, t)
+'''

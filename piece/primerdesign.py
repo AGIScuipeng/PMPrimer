@@ -44,7 +44,7 @@ class piecedesign() :
         posl, posr, seqlen, posmem, mem = 1, 1, len(next(iter(seqdict.values()))), [], [0.0]*2
 
         while posr < seqlen :
-            while calc_conserve_continue(seqdict, posl, posr, mem) >= threshold and posr < seqlen : posr += 1
+            while calc_conserve_continue(seqdict, posl, posr, mem, threshold) and posr < seqlen : posr += 1
             if posr - posl + (1 if posr-posl == 0 else 0) >= minlen and ((mem[1]/len(seqdict.values()))/(1 if posr-posl == 0 else posr-posl)) >= threshold : posmem.append([posl, posr-1 if posr < seqlen else posr])
             posr += 1; posl = posr; mem = [0.0]*2
         self._base.baselog(BASE_DEBUG_LEVEL1, '\r比对后序列的所有保守区域探测完毕')
