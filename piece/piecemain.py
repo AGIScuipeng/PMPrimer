@@ -93,7 +93,7 @@ class piecemain() :
                 #非保守区间的多样性进行排名
                 stdlist, arealist = rank_lists_byfirst(allshannon, conser, reverse=True)
                 self._base.baselog(BASE_DEBUG_LEVEL1, '\n保守区间多样性排名为：/ Conservative Area Rank Is :')
-                for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx][-1]-arealist[idx][0]+1))
+                for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
 
             if 'rankall' in self.args.alldesign :
                 #所有区间的多样性排名
