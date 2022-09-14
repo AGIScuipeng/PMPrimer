@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/13
+更改日期: 2022/09/14
 '''
 
 from piece.piecebase import *
@@ -71,18 +71,29 @@ class piecemain() :
             nonconser = pcds.detect_non_conser_area(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, conser)
             self._base.baselog(BASE_DEBUG_LEVEL1, '非保守区间列表 / List Of Non Conservative Area is : \n{0}'.format(nonconser))
 
-            if 'rank' in self.args.alldesign :
+            if 'rank1' in self.args.alldesign :
                 #非保守区间标准差
                 allshannon = []
                 for rang in nonconser :
                     areashannon = pcds.calc_area_diverse(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
                     allshannon.append(areashannon)
-                    self._base.debuglog(BASE_DEBUG_LEVEL2, '非保守区间 {0} 的香农系数为：{1} \nScore Of Non Conservative {0} Area is : {1}'.format([rang[0], rang[1]], areashannon))
 
                 #非保守区间的多样性进行排名
                 stdlist, arealist = rank_lists_byfirst(allshannon, nonconser, reverse=True)
                 self._base.baselog(BASE_DEBUG_LEVEL1, '\n非保守区间多样性排名为：/ Non Conservative Area Rank Is :')
                 for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
+
+            if 'rank2' in self.args.alldesign :
+                #非保守区间标准差
+                allshannon = []
+                for rang in conser :
+                    areashannon = pcds.calc_area_diverse(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
+                    allshannon.append(areashannon)
+
+                #非保守区间的多样性进行排名
+                stdlist, arealist = rank_lists_byfirst(allshannon, conser, reverse=True)
+                self._base.baselog(BASE_DEBUG_LEVEL1, '\n保守区间多样性排名为：/ Conservative Area Rank Is :')
+                for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx][-1]-arealist[idx][0]+1))
 
             if 'rankall' in self.args.alldesign :
                 #所有区间的多样性排名

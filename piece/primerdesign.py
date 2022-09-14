@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/08
+更改日期: 2022/09/14
 '''
 
 from piece.piecedefine import *
@@ -59,13 +59,13 @@ class piecedesign() :
 
     #计算非保守区域的多样性，结果越接近1，多样性越高
     def calc_area_diverse(self, seqdict, posl, posr) :
-        seqcnt, allstd = len(seqdict.values()), []
+        seqcnt, allshannon = len(seqdict.values()), []
         self._base.debuglog(BASE_DEBUG_LEVEL3, 'A\tT\tC\tG\t-\t{0},{1}'.format(posl, posr))
 
         for i in range(posl, posl+1 if posr-posl == 0 else posr+1) :
             self._base.debuglog(BASE_DEBUG_LEVEL3, [Counter([seq[i-1] for seq in seqdict.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST])
-            allstd.append(calc_shannon_entropy([Counter([seq[i-1] for seq in seqdict.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST]))
-        return round(sum(allstd)/len(allstd), 8)
+            allshannon.append(calc_shannon_entropy([Counter([seq[i-1] for seq in seqdict.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST]))
+        return round(sum(allshannon)/len(allshannon), 8)
 
     #通过将列表集合化，可以得到有多少个不同的序列，从而把相同的排除掉
     def detect_hypertype(self, seqdict, posl, posr) :
