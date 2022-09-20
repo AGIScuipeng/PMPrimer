@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/13
+更改日期: 2022/09/20
 '''
 
 from piece.piecedefine import *
@@ -20,10 +20,17 @@ def originpos(mainc, id, finalpos) :
 
 #计算对比序列区间的保守度：延续法
 def calc_conserve_continue(seqdict, posl, posr, mem, rate) :
-    seqcnt, mem[1] = len(seqdict.values()), mem[0]
+    #if 1 <= posr <= 5 :print(posr, end=' | ')
+    seqcnt, mem[1], tmp = len(seqdict.values()), mem[0], 0.0
     mem[0] += Counter([seq[posr-1] for seq in seqdict.values()]).most_common(1)[0][1]
 
-    return (mem[0]/seqcnt)/(posr-posl+1) >= rate
+    for ibp in range(posr, max(posl,posr-5) if posr != posl else posr+1, -1 if posr != posl else 1) :
+        try : tmp += Counter([seq[ibp-1] for seq in seqdict.values()]).most_common(1)[0][1]
+        except : break
+    #if 1 <= posr <= 5 :print(posr, end=' | ')
+    #if 1 <= posr <= 5 :print(ibp, (tmp/seqcnt)/((posr-ibp+1) if posr != posl else (ibp-posr+1)) >= rate)
+
+    return (mem[0]/seqcnt)/(posr-posl+1) >= rate and (tmp/seqcnt)/((posr-ibp+1) if posr != posl else (ibp-posr+1)) >= rate
 
 #计算对比序列区间的保守度：中断法（不到阈值立刻终止）
 def calc_conserve_termina(seqdict, posl, posr, mem, rate) :

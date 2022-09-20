@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/14
+更改日期: 2022/09/20
 '''
 
 from piece.piecebase import *
@@ -64,7 +64,7 @@ class piecemain() :
                 self.aftercmp(pcds)
 
             #挖掘出所有符合条件的保守区间
-            conser = pcds.detect_conser_area(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, threshold=0.95, minlen=1)
+            conser = pcds.detect_conser_area(self._comparedata if 'muscle' in self.args.alldesign else self._origindata)
             self._base.baselog(BASE_DEBUG_LEVEL1, '保守区间列表 / List Of Conservative Area is : \n{0}'.format(conser))
 
             #挖掘出所有符合条件的非保守区间
