@@ -2,11 +2,11 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/14
+更改日期: 2022/09/21
 '''
 
 from piece.piecedefine import *
-from piece.piecebase import calc_conserve_continue, calc_shannon_entropy
+from piece.piecebase import calc_conserve_continue, calc_conserve_continue_shannon, calc_shannon_entropy, generate_shannon_bynum
 
 from primer3 import bindings
 from collections import Counter
@@ -35,7 +35,7 @@ class piecedesign() :
         self._base.baselog(BASE_DEBUG_LEVEL1, '\rMUSCLE 多序列比对完成' if cm.returncode == 0 else 'MUSCLE 多序列比对异常')
 
     #调用primer3-py设计引物
-    def callprimer(self, target, opt) :
+    def callprimer(self, target, opt=None) :
         return bindings.designPrimers(target, opt)
 
     #挖掘所有保守区域
@@ -50,21 +50,32 @@ class piecedesign() :
         self._base.baselog(BASE_DEBUG_LEVEL1, '\r比对后序列的所有保守区域探测完毕')
         return posmem
 
+    #通过香农熵挖掘所有保守区域
+    def detect_conser_area_shannon(self, seqdict, threshold=generate_shannon_bynum(0.95), minlen=15) :
+        self._base.baselog(BASE_DEBUG_LEVEL1, '探测比对后序列的所有保守区域...', ends='')
+        posl, posr, seqlen, posmem, mem = 1, 1, len(seqdict), [], [1.0]*2
+
+        while posr < seqlen :
+            while calc_conserve_continue_shannon(seqdict, posl, posr, mem, threshold) and posr < seqlen : posr += 1
+            if posr - posl + (1 if posr-posl == 0 else 0) >= minlen and mem[1] <= threshold : posmem.append([posl, posr-1 if posr < seqlen and posl != posr else posr])
+            posr += 1; posl = posr; mem = [1.0]*2
+        self._base.baselog(BASE_DEBUG_LEVEL1, '\r比对后序列的所有保守区域探测完毕')
+        return posmem
+
     #挖掘所有非保守区域
     def detect_non_conser_area(self, seqdict, posmem, minlen=1) :
-        posmem_len, seqlen = len(posmem), len(next(iter(seqdict.values())))
+        posmem_len, seqlen = len(posmem), len(seqdict)
         ret = [[rang[1]+1, posmem[idx+1][0]-1] for idx, rang in enumerate(posmem) if idx != posmem_len-1 and posmem[idx+1][0] - rang[1] > minlen]
         if posmem[-1][-1] != seqlen : ret.append([posmem[-1][-1]+1, seqlen])
         return ret
 
     #计算非保守区域的多样性，结果越接近1，多样性越高
     def calc_area_diverse(self, seqdict, posl, posr) :
-        seqcnt, allshannon = len(seqdict.values()), []
+        seqcnt, allshannon = len(seqdict), []
         self._base.debuglog(BASE_DEBUG_LEVEL3, 'A\tT\tC\tG\t-\t{0},{1}'.format(posl, posr))
 
-        for i in range(posl, posl+1 if posr-posl == 0 else posr+1) :
-            self._base.debuglog(BASE_DEBUG_LEVEL3, [Counter([seq[i-1] for seq in seqdict.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST])
-            allshannon.append(calc_shannon_entropy([Counter([seq[i-1] for seq in seqdict.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST]))
+        self._base.debuglog(BASE_DEBUG_LEVEL3, seqdict[posl:posr])
+        allshannon.extend(seqdict[posl-1:posr])
         return round(sum(allshannon)/len(allshannon), 8)
 
     #通过将列表集合化，可以得到有多少个不同的序列，从而把相同的排除掉

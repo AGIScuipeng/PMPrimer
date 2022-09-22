@@ -54,6 +54,16 @@ def calc_n_divide_average(num_list) :
 def calc_shannon_entropy(num_list) :
     return -sum([p*math.log(p, len(num_list)) for p in num_list if p])
 
+#计算对比序列区间的保守度：香农熵延续法
+def calc_conserve_continue_shannon(seqdict, posl, posr, mem, rate) :
+    seqcnt, mem[1], mem[0] = len(seqdict), mem[0], seqdict[posr-1]
+    return mem[0] <= rate
+
+#生成阈值最低香农熵
+def generate_shannon_bynum(threshold) :
+    #return round(calc_shannon_entropy([threshold, 1-threshold, 0, 0, 0]), 1)
+    return calc_shannon_entropy([threshold, 1-threshold, 0, 0, 0])
+
 #根据列表1对两个列表进行排序
 def rank_lists_byfirst(list1, list2, reverse=False) :
     return [list(x) for x in zip(*(sorted(zip(list1, list2), key=lambda x: (x[0], x[1]), reverse=reverse)))]
