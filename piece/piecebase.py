@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/20
+更改日期: 2022/09/23
 '''
 
 from piece.piecedefine import *
@@ -55,8 +55,8 @@ def calc_shannon_entropy(num_list) :
     return -sum([p*math.log(p, len(num_list)) for p in num_list if p])
 
 #计算对比序列区间的保守度：香农熵延续法
-def calc_conserve_continue_shannon(seqdict, posl, posr, mem, rate) :
-    seqcnt, mem[1], mem[0] = len(seqdict), mem[0], seqdict[posr-1]
+def calc_conserve_termina_shannon(seqdict, posl, posr, mem, rate) :
+    seqcnt, mem[1], mem[0] = len(seqdict), mem[0], seqdict[posr-1]#sum(seqdict[max(posl-1, posr-2):posr])/(max(posr-max(posl, posr-2), 1))
     return mem[0] <= rate
 
 #生成阈值最低香农熵

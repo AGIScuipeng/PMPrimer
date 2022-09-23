@@ -2,11 +2,11 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/21
+更改日期: 2022/09/23
 '''
 
 from piece.piecedefine import *
-from piece.piecebase import calc_conserve_continue, calc_conserve_continue_shannon, calc_shannon_entropy, generate_shannon_bynum
+from piece.piecebase import calc_conserve_continue, calc_conserve_termina_shannon, calc_shannon_entropy, generate_shannon_bynum
 
 from primer3 import bindings
 from collections import Counter
@@ -56,7 +56,7 @@ class piecedesign() :
         posl, posr, seqlen, posmem, mem = 1, 1, len(seqdict), [], [1.0]*2
 
         while posr < seqlen :
-            while calc_conserve_continue_shannon(seqdict, posl, posr, mem, threshold) and posr < seqlen : posr += 1
+            while calc_conserve_termina_shannon(seqdict, posl, posr, mem, threshold) and posr < seqlen : posr += 1
             if posr - posl + (1 if posr-posl == 0 else 0) >= minlen and mem[1] <= threshold : posmem.append([posl, posr-1 if posr < seqlen and posl != posr else posr])
             posr += 1; posl = posr; mem = [1.0]*2
         self._base.baselog(BASE_DEBUG_LEVEL1, '\r比对后序列的所有保守区域探测完毕')
