@@ -117,32 +117,41 @@ class piecemain() :
                 for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
 
             #根据hypertype进行分析和后续的引物设计
+            self._base.baselog(BASE_DEBUG_LEVEL1, '\n保守区间的HyperType情况如下：')
             for rang in conser :
                 alltype = pcds.detect_hypertype(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
-                self._base.baselog(BASE_DEBUG_LEVEL1, 'Area {} : {}; \tLen : {}'.format(rang, len(alltype), rang[1]-rang[0]+1))
+                self._base.baselog(BASE_DEBUG_LEVEL1, 'Area {}; \tLen : {}; \t {}'.format(rang, rang[1]-rang[0]+1, len(alltype)))
                 #for t in alltype : self._base.debuglog(BASE_DEBUG_LEVEL1, t)
 
+            #调用primer3-py进行引物设计
             if 'primer' in self.args.alldesign :
-                primer_dict = {}
-                for rang in conser :
+                primer_dict, areacnt = {}, len(conser)
+                self._base.baselog(BASE_DEBUG_LEVEL1, '\n正在根据保守区间进行引物设计...', ends='')
+                for numi, rang in enumerate(conser, start=1) :
+                    self._base.baselog(BASE_DEBUG_LEVEL1, '\r正在根据保守区间进行引物设计... {}/{}'.format(numi, areacnt), ends='')
+
                     if 'musle' in self.args.alldesign : data = self._comparedata
                     else : data = self._origindata
+                    #最后引物是集合的形式，直接去重
                     primer_dict.setdefault(rang[0], set())
 
                     for seq in data.values() :
+                        if seq[rang[0]-1:rang[1]].count('-')/(rang[1]-rang[0]) > 0.5 : continue
+
                         seq_args = {
                             'SEQUENCE_ID': '{}-{}'.format(rang[0], rang[1]),
                             'SEQUENCE_TEMPLATE': seq.replace('-', ''),
                             'SEQUENCE_INCLUDED_REGION': [rang[0]-seq[:rang[0]].count('-')-1, rang[1]-rang[0]],
-                            }
+                        }
                         opt_args = {
-                            'PRIMER_OPT_SIZE':(15+(rang[1]-rang[0]))//2,
+                            'PRIMER_OPT_SIZE':((15+rang[1]-rang[0])//2) if rang[1]-rang[0]<35 else 25,
                             'PRIMER_MIN_SIZE':15,
-                            'PRIMER_MAX_SIZE':rang[1]-rang[0],
+                            'PRIMER_MAX_SIZE':(rang[1]-rang[0]) if rang[1]-rang[0]<35 else 35,
                             'PRIMER_PRODUCT_SIZE_RANGE':[rang[1]-rang[0], 100],
                             'PRIMER_MIN_TM': 50.0,
                             'PRIMER_PICK_LEFT_PRIMER': 1,
                         }
                         primer_dict[rang[0]].update(pcds.callprimer(target=seq_args, opt=opt_args))
 
-                #print(primer_dict)
+                self._base.baselog(BASE_DEBUG_LEVEL1, '\r\n已经根据保守区间完成引物设计')
+                [self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : {}'.format(k,v)) if len(v) else self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : None'.format(k)) for k, v in primer_dict.items()]
