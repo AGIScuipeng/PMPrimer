@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/21
+更改日期: 2022/09/26
 '''
 
 from piece.piecebase import *
@@ -122,42 +122,27 @@ class piecemain() :
                 self._base.baselog(BASE_DEBUG_LEVEL1, 'Area {} : {}; \tLen : {}'.format(rang, len(alltype), rang[1]-rang[0]+1))
                 #for t in alltype : self._base.debuglog(BASE_DEBUG_LEVEL1, t)
 
-            '''
-            for rang in conser[1:2] :
-                if 'musle' in self.args.alldesign : data = self._comparedata
-                else : data = self._origindata
+            if 'primer' in self.args.alldesign :
+                primer_dict = {}
+                for rang in conser :
+                    if 'musle' in self.args.alldesign : data = self._comparedata
+                    else : data = self._origindata
+                    primer_dict.setdefault(rang[0], set())
 
-                primer_list = []
-                for seq in data.values() :
-                    print(seq[rang[0]-1:rang[1]])
-                    seq_args = {
-                        'SEQUENCE_ID': '{}-{}'.format(rang[0], rang[1]),
-                        'SEQUENCE_TEMPLATE': seq[rang[0]-1:rang[1]],
-                        'SEQUENCE_INCLUDED_REGION': [0, rang[1]-rang[0]],
+                    for seq in data.values() :
+                        seq_args = {
+                            'SEQUENCE_ID': '{}-{}'.format(rang[0], rang[1]),
+                            'SEQUENCE_TEMPLATE': seq.replace('-', ''),
+                            'SEQUENCE_INCLUDED_REGION': [rang[0]-seq[:rang[0]].count('-')-1, rang[1]-rang[0]],
+                            }
+                        opt_args = {
+                            'PRIMER_OPT_SIZE':(15+(rang[1]-rang[0]))//2,
+                            'PRIMER_MIN_SIZE':15,
+                            'PRIMER_MAX_SIZE':rang[1]-rang[0],
+                            'PRIMER_PRODUCT_SIZE_RANGE':[rang[1]-rang[0], 100],
+                            'PRIMER_MIN_TM': 50.0,
+                            'PRIMER_PICK_LEFT_PRIMER': 1,
                         }
-                    opt_args = {
-                        'PRIMER_OPT_SIZE': rang[1]-rang[0],
-                        'PRIMER_PICK_INTERNAL_OLIGO': 1,
-                        'PRIMER_INTERNAL_MAX_SELF_END': 8,
-                        'PRIMER_MIN_SIZE': 15,
-                        'PRIMER_MAX_SIZE': rang[1]-rang[0],
-                        'PRIMER_OPT_TM': 60.0,
-                        'PRIMER_MIN_TM': 57.0,
-                        'PRIMER_MAX_TM': 63.0,
-                        'PRIMER_MIN_GC': 20.0,
-                        'PRIMER_MAX_GC': 80.0,
-                        'PRIMER_MAX_POLY_X': 100,
-                        'PRIMER_INTERNAL_MAX_POLY_X': 100,
-                        'PRIMER_SALT_MONOVALENT': 50.0,
-                        'PRIMER_DNA_CONC': 50.0,
-                        'PRIMER_MAX_NS_ACCEPTED': 0,
-                        'PRIMER_MAX_SELF_ANY': 12,
-                        'PRIMER_MAX_SELF_END': 8,
-                        'PRIMER_PAIR_MAX_COMPL_ANY': 12,
-                        'PRIMER_PAIR_MAX_COMPL_END': 8,
-                        'PRIMER_PRODUCT_SIZE_RANGE': [0, rang[1]-rang[0]],
-                    }
-                    primer_list.append(pcds.callprimer(target=seq_args))#, opt=opt_args))
+                        primer_dict[rang[0]].update(pcds.callprimer(target=seq_args, opt=opt_args))
 
-            print(primer_list)
-            '''
+                #print(primer_dict)

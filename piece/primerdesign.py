@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/23
+更改日期: 2022/09/26
 '''
 
 from piece.piecedefine import *
@@ -36,7 +36,11 @@ class piecedesign() :
 
     #调用primer3-py设计引物
     def callprimer(self, target, opt=None) :
-        return bindings.designPrimers(target, opt)
+        primer3_result = bindings.designPrimers(target, opt)
+        #print(primer3_result)
+
+        rescnt = primer3_result['PRIMER_LEFT_NUM_RETURNED']
+        return [primer3_result['PRIMER_LEFT_{}_SEQUENCE'.format(i)] for i in range(rescnt)]
 
     #挖掘所有保守区域
     def detect_conser_area(self, seqdict, threshold=0.95, minlen=15) :
