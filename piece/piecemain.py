@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/26
+更改日期: 2022/09/27
 '''
 
 from piece.piecebase import *
@@ -133,7 +133,7 @@ class piecemain() :
                     if 'musle' in self.args.alldesign : data = self._comparedata
                     else : data = self._origindata
                     #最后引物是集合的形式，直接去重
-                    primer_dict.setdefault(rang[0], set())
+                    primer_dict.setdefault(rang[0], (set(),set()))
 
                     for seq in data.values() :
                         if seq[rang[0]-1:rang[1]].count('-')/(rang[1]-rang[0]) > 0.5 : continue
@@ -151,7 +151,8 @@ class piecemain() :
                             'PRIMER_MIN_TM': 50.0,
                             'PRIMER_PICK_LEFT_PRIMER': 1,
                         }
-                        primer_dict[rang[0]].update(pcds.callprimer(target=seq_args, opt=opt_args))
+                        pair_primer = pcds.callprimer(target=seq_args, opt=opt_args)
+                        primer_dict[rang[0]][0].update(pair_primer[0]); primer_dict[rang[0]][1].update(pair_primer[1])
 
                 self._base.baselog(BASE_DEBUG_LEVEL1, '\r\n已经根据保守区间完成引物设计')
-                [self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : {}'.format(k,v)) if len(v) else self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : None'.format(k)) for k, v in primer_dict.items()]
+                [self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : {}'.format(k,v)) if len(v[0]|v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : None'.format(k)) for k, v in primer_dict.items()]

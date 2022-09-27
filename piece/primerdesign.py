@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/26
+更改日期: 2022/09/27
 '''
 
 from piece.piecedefine import *
@@ -40,7 +40,7 @@ class piecedesign() :
         #print(primer3_result)
 
         rescnt = primer3_result['PRIMER_LEFT_NUM_RETURNED']
-        return [primer3_result['PRIMER_LEFT_{}_SEQUENCE'.format(i)] for i in range(rescnt)]
+        return ([primer3_result['PRIMER_LEFT_{}_SEQUENCE'.format(i)] for i in range(rescnt)], [primer3_result['PRIMER_RIGHT_{}_SEQUENCE'.format(i)] for i in range(rescnt)])
 
     #挖掘所有保守区域
     def detect_conser_area(self, seqdict, threshold=0.95, minlen=15) :
