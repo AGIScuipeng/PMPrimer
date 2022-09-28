@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/23
+更改日期: 2022/09/28
 '''
 
 from piece.piecedefine import *
@@ -54,9 +54,9 @@ def calc_n_divide_average(num_list) :
 def calc_shannon_entropy(num_list) :
     return -sum([p*math.log(p, len(num_list)) for p in num_list if p])
 
-#计算对比序列区间的保守度：香农熵延续法
-def calc_conserve_termina_shannon(seqdict, posl, posr, mem, rate) :
-    seqcnt, mem[1], mem[0] = len(seqdict), mem[0], seqdict[posr-1]#sum(seqdict[max(posl-1, posr-2):posr])/(max(posr-max(posl, posr-2), 1))
+#计算对比序列区间的保守度：香农熵终端和窗口延续法
+def calc_conserve_termina_shannon(seqdict, posl, posr, mem, rate, window=1) :
+    seqcnt, mem[1], mem[0] = len(seqdict), mem[0], sum(seqdict[max(posl-1, posr-window):posr])/(max(posr-max(posl, posr-window), 1))
     return mem[0] <= rate
 
 #生成阈值最低香农熵
@@ -78,3 +78,6 @@ class piecebase() :
 
     def debuglog(self, setlevel, msg, ends='\n') :
         if setlevel & self._level : print('\033[0;33;40m{}\033[0m'.format(msg), end=ends)
+
+    def errorlog(self, msg, ends='\n') :
+        raise SystemExit('\033[0;31;40m{}\033[0m'.format(msg))

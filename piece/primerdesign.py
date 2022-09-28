@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/27
+更改日期: 2022/09/28
 '''
 
 from piece.piecedefine import *
@@ -34,11 +34,10 @@ class piecedesign() :
         self._base.baselog(BASE_DEBUG_LEVEL1, '\rMUSCLE 多序列比对完成' if cm.returncode == 0 else 'MUSCLE 多序列比对异常')
 
     #调用primer3-py设计引物
-    def callprimer(self, target, opt=None) :
+    def callprimer(self, target, opt=None, tops=99) :
         primer3_result = bindings.designPrimers(target, opt)
-        #print(primer3_result)
 
-        rescnt = primer3_result['PRIMER_LEFT_NUM_RETURNED']
+        rescnt = min(primer3_result['PRIMER_LEFT_NUM_RETURNED'], tops)
         return ([primer3_result['PRIMER_LEFT_{}_SEQUENCE'.format(i)] for i in range(rescnt)], [primer3_result['PRIMER_RIGHT_{}_SEQUENCE'.format(i)] for i in range(rescnt)])
 
     #挖掘所有保守区域
@@ -56,12 +55,17 @@ class piecedesign() :
     #通过香农熵挖掘所有保守区域
     def detect_conser_area_shannon(self, seqdict, threshold=generate_shannon_bynum(0.95), minlen=15) :
         self._base.baselog(BASE_DEBUG_LEVEL1, '探测比对后序列的所有保守区域...', ends='')
-        posl, posr, seqlen, posmem, mem = 1, 1, len(seqdict), [], [1.0]*2
+        posl, posr, seqlen, posmem, mem, window = 1, 1, len(seqdict), [], [1.0]*2, 1
 
-        while posr < seqlen :
-            while calc_conserve_termina_shannon(seqdict, posl, posr, mem, threshold) and posr < seqlen : posr += 1
-            if posr - posl + (1 if posr-posl == 0 else 0) >= minlen and mem[1] <= threshold : posmem.append([posl, posr-1 if posr < seqlen and posl != posr else posr])
-            posr += 1; posl = posr; mem = [1.0]*2
+        #如果保守区域个数<2 且 窗口<4 则扩大窗口继续尝试
+        while len(posmem) < 2 and window < 4 :
+            while posr < seqlen :
+                while calc_conserve_termina_shannon(seqdict, posl, posr, mem, threshold) and posr < seqlen : posr += 1
+                if posr - posl + (1 if posr-posl == 0 else 0) >= minlen and mem[1] <= threshold : posmem.append([posl, posr-1 if posr < seqlen and posl != posr else posr])
+                posr += 1; posl = posr; mem = [1.0]*2
+            window += 1; posl, posr, seqlen, mem = 1, 1, len(seqdict), [1.0]*2
+
+        if len(posmem) < 2 : self._base.errorlog('\n香农熵中断和延续法无法探测到足够的保守区域/ Shannon Terminate Or Continue Cannot Detect Enough Conservate Area')
         self._base.baselog(BASE_DEBUG_LEVEL1, '\r比对后序列的所有保守区域探测完毕')
         return posmem
 
@@ -82,4 +86,4 @@ class piecedesign() :
 
     #通过将列表集合化，可以得到有多少个不同的序列，从而把相同的排除掉
     def detect_hypertype(self, seqdict, posl, posr) :
-        return set([seq[posl:posr+1] for seq in seqdict.values()])
+        return set([seq[posl-1:posr] for seq in seqdict.values()])

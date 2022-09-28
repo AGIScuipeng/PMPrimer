@@ -131,10 +131,10 @@ class piecemain() :
 
                     data = self._comparedata if 'musle' in self.args.alldesign else self._origindata
                     #最后引物是集合的形式，直接去重
-                    primer_dict.setdefault(rang[0], (set(),set()))
+                    primer_dict.setdefault(rang[0], (dict(), dict()))
 
                     for spe, seq in data.items() :
-                        if seq[rang[0]-1:rang[1]].count('-')/(rang[1]-rang[0]) > 0.5 : continue
+                        if seq[rang[0]-1:rang[1]].count('-') : continue
 
                         seq_args = {
                             'SEQUENCE_ID': '{}-{}'.format(rang[0], rang[1]),
@@ -149,8 +149,15 @@ class piecemain() :
                             'PRIMER_MIN_TM': 50.0,
                             'PRIMER_PICK_LEFT_PRIMER': 1,
                         }
-                        pair_primer = pcds.callprimer(target=seq_args, opt=opt_args)
-                        primer_dict[rang[0]][0].update(pair_primer[0]); primer_dict[rang[0]][1].update(pair_primer[1])
+                        pair_primer = pcds.callprimer(target=seq_args, opt=opt_args, tops=1)
+
+                        #将原始样本名称对应，保留原始信息
+                        for pri in pair_primer[0] :
+                            if pri in primer_dict[rang[0]][0] : primer_dict[rang[0]][0][pri].add(spe)
+                            else : primer_dict[rang[0]][0].setdefault(pri, {spe})
+                        for pri in pair_primer[1] :
+                            if pri in primer_dict[rang[0]][1] : primer_dict[rang[0]][1][pri].add(spe)
+                            else : primer_dict[rang[0]][1].setdefault(pri, {spe})
 
                 self._base.baselog(BASE_DEBUG_LEVEL1, '\r\n已经根据保守区间完成引物设计')
-                [self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : {}'.format(k,v)) if len(v[0]|v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : None'.format(k)) for k, v in primer_dict.items()]
+                [self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : {}'.format(k,v)) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : None'.format(k)) for k, v in primer_dict.items()]
