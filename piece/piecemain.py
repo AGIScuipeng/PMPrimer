@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/27
+更改日期: 2022/09/28
 '''
 
 from piece.piecebase import *
@@ -121,7 +121,6 @@ class piecemain() :
             for rang in conser :
                 alltype = pcds.detect_hypertype(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
                 self._base.baselog(BASE_DEBUG_LEVEL1, 'Area {}; \tLen : {}; \t {}'.format(rang, rang[1]-rang[0]+1, len(alltype)))
-                #for t in alltype : self._base.debuglog(BASE_DEBUG_LEVEL1, t)
 
             #调用primer3-py进行引物设计
             if 'primer' in self.args.alldesign :
@@ -130,12 +129,11 @@ class piecemain() :
                 for numi, rang in enumerate(conser, start=1) :
                     self._base.baselog(BASE_DEBUG_LEVEL1, '\r正在根据保守区间进行引物设计... {}/{}'.format(numi, areacnt), ends='')
 
-                    if 'musle' in self.args.alldesign : data = self._comparedata
-                    else : data = self._origindata
+                    data = self._comparedata if 'musle' in self.args.alldesign else self._origindata
                     #最后引物是集合的形式，直接去重
                     primer_dict.setdefault(rang[0], (set(),set()))
 
-                    for seq in data.values() :
+                    for spe, seq in data.items() :
                         if seq[rang[0]-1:rang[1]].count('-')/(rang[1]-rang[0]) > 0.5 : continue
 
                         seq_args = {

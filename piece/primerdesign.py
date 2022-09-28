@@ -6,10 +6,9 @@
 '''
 
 from piece.piecedefine import *
-from piece.piecebase import calc_conserve_continue, calc_conserve_termina_shannon, calc_shannon_entropy, generate_shannon_bynum
+from piece.piecebase import calc_conserve_continue, calc_conserve_termina_shannon, generate_shannon_bynum
 
 from primer3 import bindings
-from collections import Counter
 import subprocess, platform
 
 #多序列比对、保守区间遍历、PCR设计等
@@ -76,9 +75,8 @@ class piecedesign() :
     #计算非保守区域的多样性，结果越接近1，多样性越高
     def calc_area_diverse(self, seqdict, posl, posr) :
         seqcnt, allshannon = len(seqdict), []
-        self._base.debuglog(BASE_DEBUG_LEVEL3, 'A\tT\tC\tG\t-\t{0},{1}'.format(posl, posr))
 
-        self._base.debuglog(BASE_DEBUG_LEVEL3, seqdict[posl:posr])
+        self._base.debuglog(BASE_DEBUG_LEVEL3, seqdict[posl-1:posr])
         allshannon.extend(seqdict[posl-1:posr])
         return round(sum(allshannon)/len(allshannon), 8)
 
