@@ -2,13 +2,15 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/28
+更改日期: 2022/09/29
 '''
 
-from piece.piecebase import *
+from piece.piecedefine import *
+from piece.piecebase import calc_shannon_entropy, rank_lists_byfirst, generate_shannon_bynum
 from piece.primerdesign import piecedesign
 
 import os
+from collections import Counter
 
 #流程主类
 class piecemain() :
@@ -82,7 +84,7 @@ class piecemain() :
             self._base.baselog(BASE_DEBUG_LEVEL1, '非保守区间列表 / List Of Non Conservative Area is : \n{0}'.format(nonconser))
 
             if 'rank1' in self.args.alldesign :
-                #非保守区间标准差
+                #非保守区间多样性
                 allshannon = []
                 for rang in nonconser :
                     areashannon = pcds.calc_area_diverse(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon, rang[0], rang[1])
@@ -94,13 +96,13 @@ class piecemain() :
                 for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
 
             if 'rank2' in self.args.alldesign :
-                #非保守区间标准差
+                #保守区间多样性
                 allshannon = []
                 for rang in conser :
                     areashannon = pcds.calc_area_diverse(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon, rang[0], rang[1])
                     allshannon.append(areashannon)
 
-                #非保守区间的多样性进行排名
+                #保守区间的多样性进行排名
                 stdlist, arealist = rank_lists_byfirst(allshannon, conser, reverse=True)
                 self._base.baselog(BASE_DEBUG_LEVEL1, '\n保守区间多样性排名为：/ Conservative Area Rank Is :')
                 for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
@@ -123,6 +125,7 @@ class piecemain() :
                 self._base.baselog(BASE_DEBUG_LEVEL1, 'Area {}; \tLen : {}; \t {}'.format(rang, rang[1]-rang[0]+1, len(alltype)))
 
             #调用primer3-py进行引物设计
+            #可以先将序列去重再进行引物设计，但是保存原始信息会比较麻烦，快速开发先走流程
             if 'primer' in self.args.alldesign :
                 primer_dict, areacnt = {}, len(conser)
                 self._base.baselog(BASE_DEBUG_LEVEL1, '\n正在根据保守区间进行引物设计...', ends='')
@@ -130,7 +133,7 @@ class piecemain() :
                     self._base.baselog(BASE_DEBUG_LEVEL1, '\r正在根据保守区间进行引物设计... {}/{}'.format(numi, areacnt), ends='')
 
                     data = self._comparedata if 'musle' in self.args.alldesign else self._origindata
-                    #最后引物是集合的形式，直接去重
+                    #最后引物是dict中key:set()的形式，去重和保留原始样本名称信息
                     primer_dict.setdefault(rang[0], (dict(), dict()))
 
                     for spe, seq in data.items() :
@@ -142,14 +145,16 @@ class piecemain() :
                             'SEQUENCE_INCLUDED_REGION': [rang[0]-seq[:rang[0]].count('-')-1, rang[1]-rang[0]],
                         }
                         opt_args = {
-                            'PRIMER_OPT_SIZE':((15+rang[1]-rang[0])//2) if rang[1]-rang[0]<35 else 25,
                             'PRIMER_MIN_SIZE':15,
+                            'PRIMER_OPT_SIZE':((15+rang[1]-rang[0])//2) if rang[1]-rang[0]<35 else 25,
                             'PRIMER_MAX_SIZE':(rang[1]-rang[0]) if rang[1]-rang[0]<35 else 35,
                             'PRIMER_PRODUCT_SIZE_RANGE':[rang[1]-rang[0], 100],
                             'PRIMER_MIN_TM': 50.0,
                             'PRIMER_PICK_LEFT_PRIMER': 1,
+                            'PRIMER_PICK_RIGHT_PRIMER': 1,
+                            'PRIMER_NUM_RETURN': 1,
                         }
-                        pair_primer = pcds.callprimer(target=seq_args, opt=opt_args, tops=1)
+                        pair_primer = pcds.callprimer(target=seq_args, opt=opt_args)
 
                         #将原始样本名称对应，保留原始信息
                         for pri in pair_primer[0] :

@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/28
+更改日期: 2022/09/29
 '''
 
 from piece.piecedefine import *
@@ -35,10 +35,15 @@ class piecedesign() :
 
     #调用primer3-py设计引物
     def callprimer(self, target, opt=None, tops=99) :
-        primer3_result = bindings.designPrimers(target, opt)
+        #分别设计F引物，R引物
+        opt['PRIMER_PICK_RIGHT_PRIMER']=0
+        f_result = bindings.designPrimers(target, opt)
+        opt['PRIMER_PICK_RIGHT_PRIMER']=1; opt['PRIMER_PICK_LEFT_PRIMER']=0
+        r_result = bindings.designPrimers(target, opt)
 
-        rescnt = min(primer3_result['PRIMER_LEFT_NUM_RETURNED'], tops)
-        return ([primer3_result['PRIMER_LEFT_{}_SEQUENCE'.format(i)] for i in range(rescnt)], [primer3_result['PRIMER_RIGHT_{}_SEQUENCE'.format(i)] for i in range(rescnt)])
+        #TOPS参数暂且无用，后续可能会有用，故暂时保留
+        fcnt, rcnt = min(f_result['PRIMER_LEFT_NUM_RETURNED'], tops), min(r_result['PRIMER_RIGHT_NUM_RETURNED'], tops)
+        return ([f_result['PRIMER_LEFT_{}_SEQUENCE'.format(i)] for i in range(fcnt)], [r_result['PRIMER_RIGHT_{}_SEQUENCE'.format(i)] for i in range(rcnt)])
 
     #挖掘所有保守区域
     def detect_conser_area(self, seqdict, threshold=0.95, minlen=15) :
@@ -65,6 +70,7 @@ class piecedesign() :
                 posr += 1; posl = posr; mem = [1.0]*2
             window += 1; posl, posr, seqlen, mem = 1, 1, len(seqdict), [1.0]*2
 
+        #没有足够的保守区间，程序直接退出
         if len(posmem) < 2 : self._base.errorlog('\n香农熵中断和延续法无法探测到足够的保守区域/ Shannon Terminate Or Continue Cannot Detect Enough Conservate Area')
         self._base.baselog(BASE_DEBUG_LEVEL1, '\r比对后序列的所有保守区域探测完毕')
         return posmem
@@ -76,7 +82,7 @@ class piecedesign() :
         if posmem[-1][-1] != seqlen : ret.append([posmem[-1][-1]+1, seqlen])
         return ret
 
-    #计算非保守区域的多样性，结果越接近1，多样性越高
+    #计算区域的多样性，结果越接近1，多样性越高
     def calc_area_diverse(self, seqdict, posl, posr) :
         seqcnt, allshannon = len(seqdict), []
 
