@@ -61,6 +61,64 @@ class piecemain() :
             seqlen, seqcnt = len(next(iter(self._comparedata.values()))), len(self._comparedata.values())
             for bp in range(seqlen) : self._comparedata_shannon.append(calc_shannon_entropy([Counter([seq[bp] for seq in self._comparedata.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST]))
 
+    #根据多样性进行排名
+    def rank_by_diverse(self, pcds, area, msg) :
+        allshannon = []
+        #计算区间的多样性
+        for rang in area :
+            areashannon = pcds.calc_area_diverse(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon, rang[0], rang[1])
+            allshannon.append(areashannon)
+
+        #根据多样性进行排名
+        stdlist, arealist = rank_lists_byfirst(allshannon, area, reverse=True)
+        self._base.baselog(BASE_DEBUG_LEVEL1, '\n{}多样性排名为：/ Non Conservative Area Rank Is :'.format(msg))
+        for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
+
+    #调用primer3-py进行引物设计
+    #可以先将序列去重再进行引物设计，但是保存原始信息会比较麻烦，快速开发先走流程
+    def primer_design(self, pcds, area) :
+        primer_dict, areacnt = {}, len(area)
+        self._base.baselog(BASE_DEBUG_LEVEL1, '\n正在根据保守区间进行引物设计...', ends='')
+        for numi, rang in enumerate(area, start=1) :
+            self._base.baselog(BASE_DEBUG_LEVEL1, '\r正在根据保守区间进行引物设计... {}/{}'.format(numi, areacnt), ends='')
+
+            data = self._comparedata if 'musle' in self.args.alldesign else self._origindata
+            #最后引物是dict中key:set()的形式，去重和保留原始样本名称信息
+            primer_dict.setdefault(rang[0], (dict(), dict()))
+
+            for spe, seq in data.items() :
+                if seq[rang[0]-1:rang[1]].count('-') : continue
+
+                seq_args = {
+                    'SEQUENCE_ID': '{}-{}'.format(rang[0], rang[1]),
+                    'SEQUENCE_TEMPLATE': seq.replace('-', ''),
+                    'SEQUENCE_INCLUDED_REGION': [rang[0]-seq[:rang[0]].count('-')-1, rang[1]-rang[0]],
+                }
+                opt_args = {
+                    'PRIMER_MIN_SIZE':15,
+                    'PRIMER_OPT_SIZE':((15+rang[1]-rang[0])//2) if rang[1]-rang[0]<35 else 25,
+                    'PRIMER_MAX_SIZE':(rang[1]-rang[0]) if rang[1]-rang[0]<35 else 35,
+                    'PRIMER_PRODUCT_SIZE_RANGE':[rang[1]-rang[0], 100],
+                    'PRIMER_MIN_TM': 50.0,
+                    'PRIMER_PICK_LEFT_PRIMER': 1,
+                    'PRIMER_PICK_RIGHT_PRIMER': 1,
+                    'PRIMER_NUM_RETURN': 1,
+                }
+                pair_primer = pcds.callprimer(target=seq_args, opt=opt_args)
+
+                #将原始样本名称对应，保留原始信息
+                for pri in pair_primer[0] :
+                    if pri in primer_dict[rang[0]][0] : primer_dict[rang[0]][0][pri].add(spe)
+                    else : primer_dict[rang[0]][0].setdefault(pri, {spe})
+                for pri in pair_primer[1] :
+                    if pri in primer_dict[rang[0]][1] : primer_dict[rang[0]][1][pri].add(spe)
+                    else : primer_dict[rang[0]][1].setdefault(pri, {spe})
+
+        self._base.baselog(BASE_DEBUG_LEVEL1, '\r\n已经根据保守区间完成引物设计')
+        [self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : {}'.format(k,v)) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : None'.format(k)) for k, v in primer_dict.items()]
+
+        return primer_dict
+
     #主流程函数
     def maintrunk(self) :
         #先保存原始数据
@@ -85,38 +143,15 @@ class piecemain() :
 
             if 'rank1' in self.args.alldesign :
                 #非保守区间多样性
-                allshannon = []
-                for rang in nonconser :
-                    areashannon = pcds.calc_area_diverse(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon, rang[0], rang[1])
-                    allshannon.append(areashannon)
-
-                #非保守区间的多样性进行排名
-                stdlist, arealist = rank_lists_byfirst(allshannon, nonconser, reverse=True)
-                self._base.baselog(BASE_DEBUG_LEVEL1, '\n非保守区间多样性排名为：/ Non Conservative Area Rank Is :')
-                for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
+                self.rank_by_diverse(pcds, nonconser, '非保守区间')
 
             if 'rank2' in self.args.alldesign :
                 #保守区间多样性
-                allshannon = []
-                for rang in conser :
-                    areashannon = pcds.calc_area_diverse(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon, rang[0], rang[1])
-                    allshannon.append(areashannon)
-
-                #保守区间的多样性进行排名
-                stdlist, arealist = rank_lists_byfirst(allshannon, conser, reverse=True)
-                self._base.baselog(BASE_DEBUG_LEVEL1, '\n保守区间多样性排名为：/ Conservative Area Rank Is :')
-                for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
+                self.rank_by_diverse(pcds, conser, '保守区间')
 
             if 'rankall' in self.args.alldesign :
                 #所有区间的多样性排名
-                allarea = conser+nonconser
-                allshannon = []
-                for rang in allarea : 
-                    areashannon = pcds.calc_area_diverse(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon, rang[0], rang[1])
-                    allshannon.append(areashannon)
-                stdlist, arealist = rank_lists_byfirst(allshannon, allarea, reverse=True)
-                self._base.baselog(BASE_DEBUG_LEVEL1, '\n所有区间多样性排名为：/ All Area Rank Is :')
-                for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
+                self.rank_by_diverse(pcds, conser+nonconser, '所有区间')
 
             #根据hypertype进行分析和后续的引物设计
             self._base.baselog(BASE_DEBUG_LEVEL1, '\n保守区间的HyperType情况如下：')
@@ -124,45 +159,5 @@ class piecemain() :
                 alltype = pcds.detect_hypertype(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
                 self._base.baselog(BASE_DEBUG_LEVEL1, 'Area {}; \tLen : {}; \t {}'.format(rang, rang[1]-rang[0]+1, len(alltype)))
 
-            #调用primer3-py进行引物设计
-            #可以先将序列去重再进行引物设计，但是保存原始信息会比较麻烦，快速开发先走流程
             if 'primer' in self.args.alldesign :
-                primer_dict, areacnt = {}, len(conser)
-                self._base.baselog(BASE_DEBUG_LEVEL1, '\n正在根据保守区间进行引物设计...', ends='')
-                for numi, rang in enumerate(conser, start=1) :
-                    self._base.baselog(BASE_DEBUG_LEVEL1, '\r正在根据保守区间进行引物设计... {}/{}'.format(numi, areacnt), ends='')
-
-                    data = self._comparedata if 'musle' in self.args.alldesign else self._origindata
-                    #最后引物是dict中key:set()的形式，去重和保留原始样本名称信息
-                    primer_dict.setdefault(rang[0], (dict(), dict()))
-
-                    for spe, seq in data.items() :
-                        if seq[rang[0]-1:rang[1]].count('-') : continue
-
-                        seq_args = {
-                            'SEQUENCE_ID': '{}-{}'.format(rang[0], rang[1]),
-                            'SEQUENCE_TEMPLATE': seq.replace('-', ''),
-                            'SEQUENCE_INCLUDED_REGION': [rang[0]-seq[:rang[0]].count('-')-1, rang[1]-rang[0]],
-                        }
-                        opt_args = {
-                            'PRIMER_MIN_SIZE':15,
-                            'PRIMER_OPT_SIZE':((15+rang[1]-rang[0])//2) if rang[1]-rang[0]<35 else 25,
-                            'PRIMER_MAX_SIZE':(rang[1]-rang[0]) if rang[1]-rang[0]<35 else 35,
-                            'PRIMER_PRODUCT_SIZE_RANGE':[rang[1]-rang[0], 100],
-                            'PRIMER_MIN_TM': 50.0,
-                            'PRIMER_PICK_LEFT_PRIMER': 1,
-                            'PRIMER_PICK_RIGHT_PRIMER': 1,
-                            'PRIMER_NUM_RETURN': 1,
-                        }
-                        pair_primer = pcds.callprimer(target=seq_args, opt=opt_args)
-
-                        #将原始样本名称对应，保留原始信息
-                        for pri in pair_primer[0] :
-                            if pri in primer_dict[rang[0]][0] : primer_dict[rang[0]][0][pri].add(spe)
-                            else : primer_dict[rang[0]][0].setdefault(pri, {spe})
-                        for pri in pair_primer[1] :
-                            if pri in primer_dict[rang[0]][1] : primer_dict[rang[0]][1][pri].add(spe)
-                            else : primer_dict[rang[0]][1].setdefault(pri, {spe})
-
-                self._base.baselog(BASE_DEBUG_LEVEL1, '\r\n已经根据保守区间完成引物设计')
-                [self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : {}'.format(k,v)) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : None'.format(k)) for k, v in primer_dict.items()]
+                self.primer_design(pcds, conser)
