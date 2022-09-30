@@ -2,12 +2,13 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/29
+更改日期: 2022/09/30
 '''
 
 from piece.piecedefine import *
 from piece.piecebase import calc_shannon_entropy, rank_lists_byfirst, generate_shannon_bynum
 from piece.primerdesign import piecedesign
+from piece.pieceevaluate import pieceevaluate
 
 import os
 from collections import Counter
@@ -21,10 +22,8 @@ class piecemain() :
         self._todo_path = '{}/static'.format(os.path.dirname(os.path.abspath(__file__)))
 
         #原始、对比数据的保存
-        self._origindata = {}
-        self._origindata_shannon = []
-        self._comparedata = {}
-        self._comparedata_shannon = []
+        self._origindata = {}; self._origindata_shannon = []
+        self._comparedata = {}; self._comparedata_shannon = []
 
         #基础模块的获取，log等功能都在其中
         self._base = pbase
@@ -62,7 +61,7 @@ class piecemain() :
             for bp in range(seqlen) : self._comparedata_shannon.append(calc_shannon_entropy([Counter([seq[bp] for seq in self._comparedata.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST]))
 
     #根据多样性进行排名
-    def rank_by_diverse(self, pcds, area, msg) :
+    def rank_by_diverse(self, pcds, area, msg, logsw=False) :
         allshannon = []
         #计算区间的多样性
         for rang in area :
@@ -71,8 +70,11 @@ class piecemain() :
 
         #根据多样性进行排名
         stdlist, arealist = rank_lists_byfirst(allshannon, area, reverse=True)
-        self._base.baselog(BASE_DEBUG_LEVEL1, '\n{}多样性排名为：/ Non Conservative Area Rank Is :'.format(msg))
-        for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
+        if logsw :
+            self._base.baselog(BASE_DEBUG_LEVEL1, '\n{}多样性排名为：/ Non Conservative Area Rank Is :'.format(msg))
+            for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
+
+        return arealist
 
     #调用primer3-py进行引物设计
     #可以先将序列去重再进行引物设计，但是保存原始信息会比较麻烦，快速开发先走流程
@@ -85,6 +87,7 @@ class piecemain() :
             data = self._comparedata if 'musle' in self.args.alldesign else self._origindata
             #最后引物是dict中key:set()的形式，去重和保留原始样本名称信息
             primer_dict.setdefault(rang[0], (dict(), dict()))
+            #如果是一个-区间取消，则使用temp + (temp=None)break处理后添加到primer_dict中
 
             for spe, seq in data.items() :
                 if seq[rang[0]-1:rang[1]].count('-') : continue
@@ -141,23 +144,30 @@ class piecemain() :
             nonconser = pcds.detect_non_conser_area(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon, conser)
             self._base.baselog(BASE_DEBUG_LEVEL1, '非保守区间列表 / List Of Non Conservative Area is : \n{0}'.format(nonconser))
 
-            if 'rank1' in self.args.alldesign :
-                #非保守区间多样性
-                self.rank_by_diverse(pcds, nonconser, '非保守区间')
+            #非保守区间多样性
+            nonconser_sort = self.rank_by_diverse(pcds, nonconser, '非保守区间', 'rank1' in self.args.alldesign)
 
-            if 'rank2' in self.args.alldesign :
-                #保守区间多样性
-                self.rank_by_diverse(pcds, conser, '保守区间')
+            #保守区间多样性
+            conser_sort = self.rank_by_diverse(pcds, conser, '保守区间', 'rank2' in self.args.alldesign)
 
+            #所有区间的多样性排名，保守和非保守分别排名是必须的，但是全排序不是必须的
             if 'rankall' in self.args.alldesign :
-                #所有区间的多样性排名
-                self.rank_by_diverse(pcds, conser+nonconser, '所有区间')
+                self.rank_by_diverse(pcds, conser+nonconser, '所有区间', True)
 
             #根据hypertype进行分析和后续的引物设计
+            self._alltype = {}
             self._base.baselog(BASE_DEBUG_LEVEL1, '\n保守区间的HyperType情况如下：')
             for rang in conser :
                 alltype = pcds.detect_hypertype(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
                 self._base.baselog(BASE_DEBUG_LEVEL1, 'Area {}; \tLen : {}; \t {}'.format(rang, rang[1]-rang[0]+1, len(alltype)))
+                self._alltype.setdefault(str(rang), alltype)
 
             if 'primer' in self.args.alldesign :
-                self.primer_design(pcds, conser)
+                self._primer_dict = self.primer_design(pcds, conser)
+
+        #如果开启，则进行最终区域选择和评估等
+        if self.args.evaluate is not None :
+            pcel = pieceevaluate(self._base, nonconser_sort, conser, self._primer_dict)
+
+            area_res = pcel.filter_area()
+            self._base.baselog(BASE_DEBUG_LEVEL1, area_res)

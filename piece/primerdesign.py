@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/29
+更改日期: 2022/09/30
 '''
 
 from piece.piecedefine import *
@@ -19,7 +19,7 @@ class piecedesign() :
         self.__platform = platform.system()
 
         self.filepath = filepath
-        self.tmpfile_path = self.filepath.replace('.fasta', '.mc.fasta')
+        self.tmpfile_path = self.filepath.replace('.fasta', '.mc.fasta') if self.filepath is not None and '.fasta' in self.filepath else pbase.errorlog('文件路径为空，或命名错误')
 
         self._base = pbase
 
