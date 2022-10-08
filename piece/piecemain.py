@@ -84,7 +84,7 @@ class piecemain() :
         for numi, rang in enumerate(area, start=1) :
             self._base.baselog('\r正在根据保守区间进行引物设计... {}/{}'.format(numi, areacnt), ends='')
 
-            data = self._comparedata if 'musle' in self.args.alldesign else self._origindata
+            data = self._comparedata if 'muscle' in self.args.alldesign else self._origindata
             #最后引物是dict中key:set()的形式，去重和保留原始样本名称信息
             primer_dict.setdefault(rang[0], (dict(), dict()))
             #如果是一个-区间取消，则使用temp + (temp=None)break处理后添加到primer_dict中
@@ -118,7 +118,8 @@ class piecemain() :
                     else : primer_dict[rang[0]][1].setdefault(pri, {spe})
 
         self._base.successlog('\r\n已经根据保守区间完成引物设计')
-        [self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : {}'.format(k,v)) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : None'.format(k)) for k, v in primer_dict.items()]
+        [self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : {}, {}'.format(k,{kk:len(vv) for kk,vv in v[0].items()},{kk:len(vv) for kk,vv in v[1].items()})) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : None'.format(k)) for k, v in primer_dict.items()]
+        [self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : {}'.format(k,v)) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : None'.format(k)) for k, v in primer_dict.items()]
 
         return primer_dict
 

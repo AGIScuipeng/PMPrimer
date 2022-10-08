@@ -71,7 +71,7 @@ def rank_lists_byfirst(list1, list2, reverse=False) :
 #基础模块，log等功能都在其中
 class piecebase() :
     def __init__(self, level=BASE_DEBUG_LEVEL0) -> None:
-        self._level = int(level)
+        self._level = max(BASE_DEBUG_LEVEL0, min(BASE_DEBUG_LEVEL3, level))
 
     def baselog(self, msg, ends='\n') :
         print(msg, end=ends)
