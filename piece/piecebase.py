@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/28
+更改日期: 2022/10/08
 '''
 
 from piece.piecedefine import *
@@ -73,11 +73,14 @@ class piecebase() :
     def __init__(self, level=BASE_DEBUG_LEVEL0) -> None:
         self._level = int(level)
 
-    def baselog(self, setlevel, msg, ends='\n') :
-        if setlevel & self._level : print(msg, end=ends)
+    def baselog(self, msg, ends='\n') :
+        print(msg, end=ends)
 
     def debuglog(self, setlevel, msg, ends='\n') :
         if setlevel & self._level : print('\033[0;33;40m{}\033[0m'.format(msg), end=ends)
+
+    def successlog(self, msg, ends='\n') :
+        print('\033[0;32;40m{}\033[0m'.format(msg), end=ends)
 
     def errorlog(self, msg, ends='\n') :
         raise SystemExit('\033[0;31;40m{}\033[0m'.format(msg))

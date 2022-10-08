@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2022/09/30
+更改日期: 2022/10/08
 '''
 
 from piece.piecedefine import *
@@ -17,7 +17,7 @@ class pieceevaluate() :
 
     #根据条件从区间中过滤出合适的保守区间和非保守区间(conser1)nonconser(conser2)
     #nonconser_sort是根据多样性由高到低排序的，conser是根据位置排序的
-    def filter_area(self, minlen=100, hpcnt=5) :
+    def filter_area(self, minlen=80, hpcnt=10) :
         posmem = []
         for area in self._nonconser_sort :
             if area[1]-area[0] < minlen : continue

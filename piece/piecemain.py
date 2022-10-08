@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/30
+更改日期: 2022/10/08
 '''
 
 from piece.piecedefine import *
@@ -71,8 +71,8 @@ class piecemain() :
         #根据多样性进行排名
         stdlist, arealist = rank_lists_byfirst(allshannon, area, reverse=True)
         if logsw :
-            self._base.baselog(BASE_DEBUG_LEVEL1, '\n{}多样性排名为：/ Non Conservative Area Rank Is :'.format(msg))
-            for idx, std in enumerate(stdlist) : self._base.baselog(BASE_DEBUG_LEVEL1, '[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
+            self._base.baselog('\n{}多样性排名为：/ Non Conservative Area Rank Is :'.format(msg))
+            for idx, std in enumerate(stdlist) : self._base.baselog('[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
 
         return arealist
 
@@ -80,9 +80,9 @@ class piecemain() :
     #可以先将序列去重再进行引物设计，但是保存原始信息会比较麻烦，快速开发先走流程
     def primer_design(self, pcds, area) :
         primer_dict, areacnt = {}, len(area)
-        self._base.baselog(BASE_DEBUG_LEVEL1, '\n正在根据保守区间进行引物设计...', ends='')
+        self._base.baselog('\n正在根据保守区间进行引物设计...', ends='')
         for numi, rang in enumerate(area, start=1) :
-            self._base.baselog(BASE_DEBUG_LEVEL1, '\r正在根据保守区间进行引物设计... {}/{}'.format(numi, areacnt), ends='')
+            self._base.baselog('\r正在根据保守区间进行引物设计... {}/{}'.format(numi, areacnt), ends='')
 
             data = self._comparedata if 'musle' in self.args.alldesign else self._origindata
             #最后引物是dict中key:set()的形式，去重和保留原始样本名称信息
@@ -117,7 +117,7 @@ class piecemain() :
                     if pri in primer_dict[rang[0]][1] : primer_dict[rang[0]][1][pri].add(spe)
                     else : primer_dict[rang[0]][1].setdefault(pri, {spe})
 
-        self._base.baselog(BASE_DEBUG_LEVEL1, '\r\n已经根据保守区间完成引物设计')
+        self._base.successlog('\r\n已经根据保守区间完成引物设计')
         [self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : {}'.format(k,v)) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : None'.format(k)) for k, v in primer_dict.items()]
 
         return primer_dict
@@ -138,11 +138,11 @@ class piecemain() :
 
             #挖掘出所有符合条件的保守区间
             conser = pcds.detect_conser_area_shannon(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon)
-            self._base.baselog(BASE_DEBUG_LEVEL1, '保守区间列表 / List Of Conservative Area is : \n{0}'.format(conser))
+            self._base.baselog('保守区间列表 / List Of Conservative Area is : \n{0}'.format(conser))
 
             #挖掘出所有符合条件的非保守区间
             nonconser = pcds.detect_non_conser_area(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon, conser)
-            self._base.baselog(BASE_DEBUG_LEVEL1, '非保守区间列表 / List Of Non Conservative Area is : \n{0}'.format(nonconser))
+            self._base.baselog('非保守区间列表 / List Of Non Conservative Area is : \n{0}'.format(nonconser))
 
             #非保守区间多样性
             nonconser_sort = self.rank_by_diverse(pcds, nonconser, '非保守区间', 'rank1' in self.args.alldesign)
@@ -156,10 +156,10 @@ class piecemain() :
 
             #根据hypertype进行分析和后续的引物设计
             self._alltype = {}
-            self._base.baselog(BASE_DEBUG_LEVEL1, '\n保守区间的HyperType情况如下：')
+            self._base.baselog('\n保守区间的HyperType情况如下：')
             for rang in conser :
                 alltype = pcds.detect_hypertype(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
-                self._base.baselog(BASE_DEBUG_LEVEL1, 'Area {}; \tLen : {}; \t {}'.format(rang, rang[1]-rang[0]+1, len(alltype)))
+                self._base.baselog('Area {}; \tLen : {}; \t {}'.format(rang, rang[1]-rang[0]+1, len(alltype)))
                 self._alltype.setdefault(str(rang), alltype)
 
             if 'primer' in self.args.alldesign :
@@ -167,7 +167,8 @@ class piecemain() :
 
         #如果开启，则进行最终区域选择和评估等
         if self.args.evaluate is not None :
-            pcel = pieceevaluate(self._base, nonconser_sort, conser, self._primer_dict)
+            try : pcel = pieceevaluate(self._base, nonconser_sort, conser, self._primer_dict)
+            except : self._base.errorlog('\n未进行引物设计/Cannot Find Designed Primer')
 
             area_res = pcel.filter_area()
-            self._base.baselog(BASE_DEBUG_LEVEL1, area_res)
+            self._base.baselog(area_res)

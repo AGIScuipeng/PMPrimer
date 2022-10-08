@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/30
+更改日期: 2022/10/08
 '''
 
 from piece.piecedefine import *
@@ -25,13 +25,13 @@ class piecedesign() :
 
     #subprocess调用muscle进行多序列比对
     def callmuscle(self) :
-        self._base.baselog(BASE_DEBUG_LEVEL1, 'MUSCLE 多序列对比中...', ends='')
+        self._base.baselog('MUSCLE 多序列对比中...', ends='')
         cm = subprocess.Popen('{}/{} --align {} --output {}'.format\
             (self._todo_path, PLATFORM_TODO[self.__platform], self.filepath, self.tmpfile_path),\
             shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         cm.wait()
         #self._base.debuglog(BASE_DEBUG_LEVEL1, cm.communicate()[1].decode())
-        self._base.baselog(BASE_DEBUG_LEVEL1, '\rMUSCLE 多序列比对完成' if cm.returncode == 0 else 'MUSCLE 多序列比对异常')
+        self._base.baselog('\rMUSCLE 多序列比对完成' if cm.returncode == 0 else 'MUSCLE 多序列比对异常')
 
     #调用primer3-py设计引物
     def callprimer(self, target, opt=None, tops=99) :
@@ -47,19 +47,19 @@ class piecedesign() :
 
     #挖掘所有保守区域
     def detect_conser_area(self, seqdict, threshold=0.95, minlen=15) :
-        self._base.baselog(BASE_DEBUG_LEVEL1, '探测比对后序列的所有保守区域...', ends='')
+        self._base.baselog('探测比对后序列的所有保守区域...', ends='')
         posl, posr, seqlen, posmem, mem = 1, 1, len(next(iter(seqdict.values()))), [], [0.0]*2
 
         while posr < seqlen :
             while calc_conserve_continue(seqdict, posl, posr, mem, threshold) and posr < seqlen : posr += 1
             if posr - posl + (1 if posr-posl == 0 else 0) >= minlen and ((mem[1]/len(seqdict.values()))/(1 if posr-posl == 0 else posr-posl)) >= threshold : posmem.append([posl, posr-1 if posr < seqlen else posr])
             posr += 1; posl = posr; mem = [0.0]*2
-        self._base.baselog(BASE_DEBUG_LEVEL1, '\r比对后序列的所有保守区域探测完毕')
+        self._base.baselog('\r比对后序列的所有保守区域探测完毕')
         return posmem
 
     #通过香农熵挖掘所有保守区域
     def detect_conser_area_shannon(self, seqdict, threshold=generate_shannon_bynum(0.95), minlen=15) :
-        self._base.baselog(BASE_DEBUG_LEVEL1, '探测比对后序列的所有保守区域...', ends='')
+        self._base.baselog('探测比对后序列的所有保守区域...', ends='')
         posl, posr, seqlen, posmem, mem, window = 1, 1, len(seqdict), [], [1.0]*2, 1
 
         #如果保守区域个数<2 且 窗口<4 则扩大窗口继续尝试
@@ -72,7 +72,7 @@ class piecedesign() :
 
         #没有足够的保守区间，程序直接退出
         if len(posmem) < 2 : self._base.errorlog('\n香农熵中断和延续法无法探测到足够的保守区域/ Shannon Terminate Or Continue Cannot Detect Enough Conservate Area')
-        self._base.baselog(BASE_DEBUG_LEVEL1, '\r比对后序列的所有保守区域探测完毕')
+        self._base.successlog('\r比对后序列的所有保守区域探测完毕')
         return posmem
 
     #挖掘所有非保守区域
