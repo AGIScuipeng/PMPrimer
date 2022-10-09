@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/08
+更改日期: 2022/10/09
 '''
 
 from piece.piecedefine import *
@@ -58,17 +58,23 @@ class piecedesign() :
         return posmem
 
     #通过香农熵挖掘所有保守区域
-    def detect_conser_area_shannon(self, seqdict, threshold=generate_shannon_bynum(0.95), minlen=15) :
-        self._base.baselog('探测比对后序列的所有保守区域...', ends='')
-        posl, posr, seqlen, posmem, mem, window = 1, 1, len(seqdict), [], [1.0]*2, 1
+    def detect_conser_area_shannon(self, shannons, seqdict, threshold=generate_shannon_bynum(0.95), minlen=15) :
+        self._base.baselog('探测比对后序列的所有保守区域...')
+        posl, posr, seqlen, posmem, mem, window = 1, 1, len(shannons), [], [1.0]*2, 1
 
         #如果保守区域个数<2 且 窗口<4 则扩大窗口继续尝试
         while len(posmem) < 2 and window < 4 :
             while posr < seqlen :
-                while calc_conserve_termina_shannon(seqdict, posl, posr, mem, threshold) and posr < seqlen : posr += 1
+                while calc_conserve_termina_shannon(shannons, posl, posr, mem, threshold) and posr < seqlen : posr += 1
                 if posr - posl + (1 if posr-posl == 0 else 0) >= minlen and mem[1] <= threshold : posmem.append([posl, posr-1 if posr < seqlen and posl != posr else posr])
                 posr += 1; posl = posr; mem = [1.0]*2
-            window += 1; posl, posr, seqlen, mem = 1, 1, len(seqdict), [1.0]*2
+            window += 1; posl, posr, seqlen, mem = 1, 1, len(shannons), [1.0]*2
+
+        seqcnt = len(seqdict)
+        #正序删除list会导致元素迁移从而删除错误，故倒序遍历
+        for rang in posmem[::-1] :
+            for ibp in range(max(0, rang[0]-1), rang[1]) :
+                if [seq[ibp] for seq in seqdict.values()].count('-')/seqcnt >= 0.1 : posmem.remove(rang); self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 空白符过多区间删除/{0} Deleted For Gaps'.format(rang)); break
 
         #没有足够的保守区间，程序直接退出
         if len(posmem) < 2 : self._base.errorlog('\n香农熵中断和延续法无法探测到足够的保守区域/ Shannon Terminate Or Continue Cannot Detect Enough Conservate Area')
@@ -76,18 +82,18 @@ class piecedesign() :
         return posmem
 
     #挖掘所有非保守区域
-    def detect_non_conser_area(self, seqdict, posmem, minlen=1) :
-        posmem_len, seqlen = len(posmem), len(seqdict)
+    def detect_non_conser_area(self, shannons, posmem, minlen=1) :
+        posmem_len, seqlen = len(posmem), len(shannons)
         ret = [[rang[1]+1, posmem[idx+1][0]-1] for idx, rang in enumerate(posmem) if idx != posmem_len-1 and posmem[idx+1][0] - rang[1] > minlen]
         if posmem[-1][-1] != seqlen : ret.append([posmem[-1][-1]+1, seqlen])
         return ret
 
     #计算区域的多样性，结果越接近1，多样性越高
-    def calc_area_diverse(self, seqdict, posl, posr) :
-        seqcnt, allshannon = len(seqdict), []
+    def calc_area_diverse(self, shannons, posl, posr) :
+        seqcnt, allshannon = len(shannons), []
 
-        self._base.debuglog(BASE_DEBUG_LEVEL3, seqdict[posl-1:posr])
-        allshannon.extend(seqdict[posl-1:posr])
+        self._base.debuglog(BASE_DEBUG_LEVEL3, shannons[posl-1:posr])
+        allshannon.extend(shannons[posl-1:posr])
         return round(sum(allshannon)/len(allshannon), 8)
 
     #通过将列表集合化，可以得到有多少个不同的序列，从而把相同的排除掉
