@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/09
+更改日期: 2022/10/11
 '''
 
 from piece.piecedefine import *
@@ -150,11 +150,10 @@ class piecemain() :
             nonconser_sort = self.rank_by_diverse(pcds, nonconser, '非保守区间', 'rank1' in self.args.alldesign)
 
             #保守区间多样性
-            conser_sort = self.rank_by_diverse(pcds, conser, '保守区间', 'rank2' in self.args.alldesign)
+            if 'rank2' in self.args.alldesign : conser_sort = self.rank_by_diverse(pcds, conser, '保守区间', True)
 
             #所有区间的多样性排名，保守和非保守分别排名是必须的，但是全排序不是必须的
-            if 'rankall' in self.args.alldesign :
-                self.rank_by_diverse(pcds, conser+nonconser, '所有区间', True)
+            if 'rankall' in self.args.alldesign : self.rank_by_diverse(pcds, conser+nonconser, '所有区间', True)
 
             #根据hypertype进行分析和后续的引物设计
             self._alltype = {}
@@ -169,8 +168,11 @@ class piecemain() :
 
         #如果开启，则进行最终区域选择和评估等
         if self.args.evaluate is not None :
-            try : pcel = pieceevaluate(self._base, nonconser_sort, conser, self._primer_dict)
+            try : pcel = pieceevaluate(self._base, nonconser_sort, conser, self._primer_dict, self._comparedata if 'muscle' in self.args.alldesign else self._origindata)
             except : self._base.errorlog('\n未进行引物设计/Cannot Find Designed Primer')
 
+            #根据条件从区间中过滤出合适的保守区间和非保守区间(conser1)nonconser(conser2)
             area_res = pcel.filter_area()
-            self._base.baselog(area_res)
+
+            #评估扩增子覆盖度
+            cover_rate = pcel.evaluate_cover_rate()
