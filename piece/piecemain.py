@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/11
+更改日期: 2022/10/12
 '''
 
 from piece.piecedefine import *
@@ -176,3 +176,6 @@ class piecemain() :
 
             #评估扩增子覆盖度
             cover_rate = pcel.evaluate_cover_rate()
+
+            #评估扩增子分辨力
+            reso = pcel.evaluate_resolution()
