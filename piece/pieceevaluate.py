@@ -53,6 +53,7 @@ class pieceevaluate() :
     #评估扩增子的分辨能力seq:set(species)
     def evaluate_resolution(self) :
         self._base.baselog('\n扩增子分辨力为/ Resolution Of Amplicon：')
+        self._diversedict = {}
         reso, speset, subset = {}, set(), set()
         for amp in self._posmem :
             diverse1, diverse2, resdict = amp[0][1], amp[1][0], dict()
@@ -63,7 +64,10 @@ class pieceevaluate() :
 
                 if seq[diverse1:diverse2] in resdict : resdict[seq[diverse1:diverse2]].add('_'.join(idsplit))
                 else : resdict.setdefault(seq[diverse1:diverse2], {'_'.join(idsplit),})
-            #self._base.debuglog(BASE_DEBUG_LEVEL3, resdict, ends='\n\n\n')
+
+            #请注意dict赋值存在直接指向、浅拷贝、深拷贝问题，如果后续resdict修改了，则此处需要改为深拷贝
+            self._diversedict.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), resdict)
+            self._base.debuglog(BASE_DEBUG_LEVEL3, resdict, ends='\n\n\n')
 
             #seq作为key，value只有一个种才计入分辨能力，亚种同理
             reso.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), ({'_'.join(list(v)[0].split('_')[:2]) for v in resdict.values() if len(v) == 1}, {list(v)[0] for v in resdict.values() if len(v) == 1}))
@@ -71,8 +75,8 @@ class pieceevaluate() :
         #在种和亚种的层次上都要统计分辨能力
         specnt, subcnt = len(speset), len(subset)
         self._base.debuglog(BASE_DEBUG_LEVEL1, '物种数量：{0}；亚种数量：{1}/ Species Number: {0}; Subspecies Number: {1}'.format(specnt, subcnt))
-        reso.update({k: (len(v[0])/specnt, len(v[1])/subcnt) for k, v in reso.items()})
 
-        self._base.baselog('\n'.join(['{} : 种{}% 亚种 {}%'.format(k, v[0]*100, v[1]*100) for k, v in reso.items()]))
-        self._resolution = reso
+        self._base.baselog('\n'.join(['{} : 种{}% 亚种 {}%'.format(k, (len(v[0])/specnt)*100, (len(v[1])/subcnt)*100) for k, v in reso.items()]))
+        self._resolution = reso; self._statistic_cnt = (specnt, subcnt)
+
         return reso
