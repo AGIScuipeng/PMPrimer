@@ -13,6 +13,12 @@ from piece.pieceevaluate import pieceevaluate
 import os
 from collections import Counter
 
+'''
+创建人员: Nerium
+创建日期: 2022/08/31
+更改人员: Nerium
+更改日期: 2022/10/12
+'''
 #流程主类
 class piecemain() :
     def __init__(self, args, pbase) -> None:
@@ -28,6 +34,12 @@ class piecemain() :
         #基础模块的获取，log等功能都在其中
         self._base = pbase
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/08/31
+    更改人员: Nerium
+    更改日期: 2022/09/12
+    '''
     #原始数据的保存
     def getorigin(self) :
         if self.args.file is not None :
@@ -45,6 +57,12 @@ class piecemain() :
                 seqlen, seqcnt = len(next(iter(self._origindata.values()))), len(self._origindata.values())
                 for bp in range(seqlen) : self._origindata_shannon.append(calc_shannon_entropy([Counter([seq[bp] for seq in self._origindata.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST]))
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/08/31
+    更改人员: Nerium
+    更改日期: 2022/09/12
+    '''
     #对比数据的保存
     def aftercmp(self, pcds) :
         if pcds.tmpfile_path is not None :
@@ -60,6 +78,12 @@ class piecemain() :
             seqlen, seqcnt = len(next(iter(self._comparedata.values()))), len(self._comparedata.values())
             for bp in range(seqlen) : self._comparedata_shannon.append(calc_shannon_entropy([Counter([seq[bp] for seq in self._comparedata.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST]))
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/08/31
+    更改人员: Nerium
+    更改日期: 2022/09/22
+    '''
     #根据多样性进行排名
     def rank_by_diverse(self, pcds, area, msg, logsw=False) :
         allshannon = []
@@ -76,6 +100,12 @@ class piecemain() :
 
         return arealist
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/08/31
+    更改人员: Nerium
+    更改日期: 2022/10/09
+    '''
     #调用primer3-py进行引物设计
     #可以先将序列去重再进行引物设计，但是保存原始信息会比较麻烦，快速开发先走流程
     def primer_design(self, pcds, area) :
@@ -123,6 +153,12 @@ class piecemain() :
 
         return primer_dict
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/08/31
+    更改人员: Nerium
+    更改日期: 2022/10/12
+    '''
     #主流程函数
     def maintrunk(self) :
         #先保存原始数据

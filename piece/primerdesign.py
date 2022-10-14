@@ -11,6 +11,12 @@ from piece.piecebase import calc_conserve_continue, calc_conserve_termina_shanno
 from primer3 import bindings
 import subprocess, platform
 
+'''
+创建人员: Nerium
+创建日期: 2022/08/31
+更改人员: Nerium
+更改日期: 2022/10/14
+'''
 #多序列比对、保守区间遍历、PCR设计等
 class piecedesign() :
     def __init__(self, pbase, todo_path, filepath, model='simple') -> None:
@@ -23,6 +29,12 @@ class piecedesign() :
 
         self._base = pbase
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/08/31
+    更改人员: Nerium
+    更改日期: 2022/09/09
+    '''
     #subprocess调用muscle进行多序列比对
     def callmuscle(self) :
         self._base.baselog('MUSCLE 多序列对比中...', ends='')
@@ -33,6 +45,12 @@ class piecedesign() :
         #self._base.debuglog(BASE_DEBUG_LEVEL1, cm.communicate()[1].decode())
         self._base.baselog('\rMUSCLE 多序列比对完成' if cm.returncode == 0 else 'MUSCLE 多序列比对异常')
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/08/31
+    更改人员: Nerium
+    更改日期: 2022/10/14
+    '''
     #调用primer3-py设计引物
     def callprimer(self, target, opt=None, tops=99) :
         #分别设计F引物，R引物
@@ -48,6 +66,12 @@ class piecedesign() :
         fcnt, rcnt = min(f_result['PRIMER_LEFT_NUM_RETURNED'], tops), min(r_result['PRIMER_RIGHT_NUM_RETURNED'], tops)
         return ([f_result['PRIMER_LEFT_{}_SEQUENCE'.format(i)] for i in range(fcnt)], [r_result['PRIMER_RIGHT_{}_SEQUENCE'.format(i)] for i in range(rcnt)])
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/08/31
+    更改人员: Nerium
+    更改日期: 2022/09/30
+    '''
     #挖掘所有保守区域
     def detect_conser_area(self, seqdict, threshold=0.95, minlen=15) :
         self._base.baselog('探测比对后序列的所有保守区域...', ends='')
@@ -60,6 +84,12 @@ class piecedesign() :
         self._base.baselog('\r比对后序列的所有保守区域探测完毕')
         return posmem
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/08/31
+    更改人员: Nerium
+    更改日期: 2022/10/10
+    '''
     #通过香农熵挖掘所有保守区域
     def detect_conser_area_shannon(self, shannons, seqdict, threshold=generate_shannon_bynum(0.95), minlen=15) :
         self._base.baselog('探测比对后序列的所有保守区域...')
@@ -84,6 +114,12 @@ class piecedesign() :
         self._base.successlog('\r比对后序列的所有保守区域探测完毕')
         return posmem
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/08/31
+    更改人员: Nerium
+    更改日期: 2022/09/10
+    '''
     #挖掘所有非保守区域
     def detect_non_conser_area(self, shannons, posmem, minlen=1) :
         posmem_len, seqlen = len(posmem), len(shannons)
@@ -91,12 +127,24 @@ class piecedesign() :
         if posmem[-1][-1] != seqlen : ret.append([posmem[-1][-1]+1, seqlen])
         return ret
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/08/31
+    更改人员: Nerium
+    更改日期: 2022/10/14
+    '''
     #计算区域的多样性，结果越接近1，多样性越高
     def calc_area_diverse(self, shannons, posl, posr) :
         self._base.debuglog(BASE_DEBUG_LEVEL3, shannons[posl-1:posr])
         allshannon = shannons[posl-1:posr]
         return round(sum(allshannon)/len([x for x in allshannon if x]), 8)
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/08/31
+    更改人员: Nerium
+    更改日期: 2022/09/14
+    '''
     #通过将列表集合化，可以得到有多少个不同的序列，从而把相同的排除掉
     def detect_hypertype(self, seqdict, posl, posr) :
         return set([seq[posl-1:posr] for seq in seqdict.values()])

@@ -7,6 +7,12 @@
 
 from piece.piecedefine import *
 
+'''
+创建人员: Nerium
+创建日期: 2022/09/29
+更改人员: Nerium
+更改日期: 2022/10/14
+'''
 class pieceevaluate() :
     def __init__(self, pbase, nonconser_sort, conser, primer_dict, seqdict) -> None:
         self._nonconser_sort = nonconser_sort
@@ -16,6 +22,12 @@ class pieceevaluate() :
 
         self._base = pbase
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/10/08
+    更改人员: Nerium
+    更改日期: 2022/10/14
+    '''
     #根据条件从区间中过滤出合适的保守区间和非保守区间(conser1)nonconser(conser2)
     #nonconser_sort是根据多样性由高到低排序的，conser是根据位置排序的
     def filter_area(self, minlen=80, hpcnt=10) :
@@ -38,6 +50,12 @@ class pieceevaluate() :
         self._posmem = posmem
         return posmem
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/10/11
+    更改人员: Nerium
+    更改日期: 2022/10/14
+    '''
     #计算扩增子的覆盖度（目前是计算所有输入序列的）
     def evaluate_cover_rate(self) :
         self._base.baselog('\n扩增子覆盖度为/ Cover Rate Of Amplicon：')
@@ -50,6 +68,12 @@ class pieceevaluate() :
         self._cover_rates = rates
         return rates
 
+    '''
+    创建人员: Nerium
+    创建日期: 2022/10/12
+    更改人员: Nerium
+    更改日期: 2022/10/14
+    '''
     #评估扩增子的分辨能力seq:set(species)
     def evaluate_resolution(self) :
         self._base.baselog('\n扩增子分辨力为/ Resolution Of Amplicon：')
