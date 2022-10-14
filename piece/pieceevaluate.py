@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2022/10/12
+更改日期: 2022/10/14
 '''
 
 from piece.piecedefine import *
@@ -70,7 +70,7 @@ class pieceevaluate() :
             self._base.debuglog(BASE_DEBUG_LEVEL3, resdict, ends='\n\n\n')
 
             #seq作为key，value只有一个种才计入分辨能力，亚种同理
-            reso.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), ({'_'.join(list(v)[0].split('_')[:2]) for v in resdict.values() if len(v) == 1}, {list(v)[0] for v in resdict.values() if len(v) == 1}))
+            reso.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), ({'_'.join(list(v)[0].split('_')[:2]) for v in resdict.values() if len({'_'.join(s.split('_')[:2]) for s in list(v)}) == 1}, {list(v)[0] for v in resdict.values() if len(v) == 1}))
 
         #在种和亚种的层次上都要统计分辨能力
         specnt, subcnt = len(speset), len(subset)

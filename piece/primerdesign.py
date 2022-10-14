@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/09
+更改日期: 2022/10/14
 '''
 
 from piece.piecedefine import *
@@ -38,8 +38,11 @@ class piecedesign() :
         #分别设计F引物，R引物
         opt['PRIMER_PICK_RIGHT_PRIMER']=0
         f_result = bindings.designPrimers(target, opt)
+        if f_result['PRIMER_LEFT_NUM_RETURNED'] == 0 : self._base.debuglog(BASE_DEBUG_LEVEL3, f_result)
+
         opt['PRIMER_PICK_RIGHT_PRIMER']=1; opt['PRIMER_PICK_LEFT_PRIMER']=0
         r_result = bindings.designPrimers(target, opt)
+        if r_result['PRIMER_RIGHT_NUM_RETURNED'] == 0 : self._base.debuglog(BASE_DEBUG_LEVEL3, r_result)
 
         #TOPS参数暂且无用，后续可能会有用，故暂时保留
         fcnt, rcnt = min(f_result['PRIMER_LEFT_NUM_RETURNED'], tops), min(r_result['PRIMER_RIGHT_NUM_RETURNED'], tops)
@@ -90,11 +93,9 @@ class piecedesign() :
 
     #计算区域的多样性，结果越接近1，多样性越高
     def calc_area_diverse(self, shannons, posl, posr) :
-        seqcnt, allshannon = len(shannons), []
-
         self._base.debuglog(BASE_DEBUG_LEVEL3, shannons[posl-1:posr])
-        allshannon.extend(shannons[posl-1:posr])
-        return round(sum(allshannon)/len(allshannon), 8)
+        allshannon = shannons[posl-1:posr]
+        return round(sum(allshannon)/len([x for x in allshannon if x]), 8)
 
     #通过将列表集合化，可以得到有多少个不同的序列，从而把相同的排除掉
     def detect_hypertype(self, seqdict, posl, posr) :
