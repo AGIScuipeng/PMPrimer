@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/12
+更改日期: 2022/10/17
 '''
 
 from piece.piecedefine import *
@@ -17,7 +17,7 @@ from collections import Counter
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/12
+更改日期: 2022/10/17
 '''
 #流程主类
 class piecemain() :
@@ -157,7 +157,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/10/12
+    更改日期: 2022/10/17
     '''
     #主流程函数
     def maintrunk(self) :
@@ -191,11 +191,11 @@ class piecemain() :
             #所有区间的多样性排名，保守和非保守分别排名是必须的，但是全排序不是必须的
             if 'rankall' in self.args.alldesign : self.rank_by_diverse(pcds, conser+nonconser, '所有区间', True)
 
-            #根据hypertype进行分析和后续的引物设计
+            #根据haplotype进行分析和后续的引物设计
             self._alltype = {}
-            self._base.baselog('\n保守区间的HyperType情况如下：')
+            self._base.baselog('\n保守区间的haplotype情况如下：')
             for rang in conser :
-                alltype = pcds.detect_hypertype(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
+                alltype = pcds.detect_haplotype(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
                 self._base.baselog('Area {}; \tLen : {}; \t {}'.format(rang, rang[1]-rang[0]+1, len(alltype)))
                 self._alltype.setdefault(str(rang), alltype)
 

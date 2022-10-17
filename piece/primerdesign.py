@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/14
+更改日期: 2022/10/17
 '''
 
 from piece.piecedefine import *
@@ -15,7 +15,7 @@ import subprocess, platform
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/14
+更改日期: 2022/10/17
 '''
 #多序列比对、保守区间遍历、PCR设计等
 class piecedesign() :
@@ -143,8 +143,8 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/09/14
+    更改日期: 2022/10/17
     '''
     #通过将列表集合化，可以得到有多少个不同的序列，从而把相同的排除掉
-    def detect_hypertype(self, seqdict, posl, posr) :
+    def detect_haplotype(self, seqdict, posl, posr) :
         return set([seq[posl-1:posr] for seq in seqdict.values()])
