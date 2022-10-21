@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2022/10/18
+更改日期: 2022/10/21
 '''
 
 from piece.piecedefine import *
@@ -11,7 +11,7 @@ from piece.piecedefine import *
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2022/10/18
+更改日期: 2022/10/21
 '''
 class pieceevaluate() :
     def __init__(self, pbase, nonconser_sort, conser, primer_dict, seqdict) -> None:
@@ -72,7 +72,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/12
     更改人员: Nerium
-    更改日期: 2022/10/18
+    更改日期: 2022/10/21
     '''
     #评估扩增子的分辨能力seq:set(species)
     def evaluate_resolution(self) :
@@ -100,7 +100,7 @@ class pieceevaluate() :
         genuscnt, specnt, subcnt = len(genuset), len(speset), len(subset)
         self._base.debuglog(BASE_DEBUG_LEVEL1, '属数量：{0}；物种数量：{1}；亚种数量：{2}/ Genus Number: {0}; Species Number: {1}; Subspecies Number: {2}'.format(genuscnt, specnt, subcnt))
 
-        self._base.baselog('\n'.join(['{} : 属 {}%; 种{}%; 亚种 {}%'.format(k, (len(v[0])/genuscnt)*100, (len(v[1])/specnt)*100, (len(v[2])/subcnt)*100) for k, v in reso.items()]))
+        self._base.baselog('\n'.join(['{} : 属 {}%; 种{:.2f}%; 亚种 {:.2f}%'.format(k, (len(v[0])/genuscnt)*100, (len(v[1])/specnt)*100, (len(v[2])/subcnt)*100) for k, v in reso.items()]))
         self._resolution = reso; self._statistic_cnt = (genuset, speset, subset)
 
         return reso
