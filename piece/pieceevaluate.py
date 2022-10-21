@@ -62,7 +62,7 @@ class pieceevaluate() :
         rates = {}
         for amp in self._posmem :
             spdf, spdr, seqcnt = self._primer_dict[amp[0][0]], self._primer_dict[amp[1][0]], len(self._seqdict.values())
-            rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), [min(len({'_'.join(s.split('\t')[-1].split('_')) for v in spdf[0].values() for s in v if g in s}), len({'_'.join(s.split('\t')[-1].split('_')) for v in spdf[0].values() for s in v if g in s})) / len([True for s in self._statistic_cnt[2] if g in s]) for g in self._statistic_cnt[0]])
+            rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), [min(len({'_'.join(s.split('\t')[-1].split('_')) for v in spdf[0].values() for s in v if g in s}), len({'_'.join(s.split('\t')[-1].split('_')) for v in spdr[1].values() for s in v if g in s})) / len([True for s in self._statistic_cnt[2] if g in s]) for g in self._statistic_cnt[0]])
 
         self._base.baselog('\n'.join(['{} : 亚种{:.2f}%'.format(k, v[0]*100) for k, v in rates.items()]))
         self._cover_rates = rates
