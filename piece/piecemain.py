@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/17
+更改日期: 2022/10/21
 '''
 
 from piece.piecedefine import *
@@ -17,7 +17,7 @@ from collections import Counter
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/17
+更改日期: 2022/10/21
 '''
 #流程主类
 class piecemain() :
@@ -157,7 +157,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/10/17
+    更改日期: 2022/10/21
     '''
     #主流程函数
     def maintrunk(self) :
@@ -210,8 +210,8 @@ class piecemain() :
             #根据条件从区间中过滤出合适的保守区间和非保守区间(conser1)nonconser(conser2)
             area_res = pcel.filter_area()
 
-            #评估扩增子覆盖度
-            cover_rate = pcel.evaluate_cover_rate()
-
             #评估扩增子分辨力
             reso = pcel.evaluate_resolution()
+
+            #评估扩增子覆盖度
+            cover_rate = pcel.evaluate_cover_rate()
