@@ -2,12 +2,12 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/21
+更改日期: 2022/10/24
 '''
 
 from piece.piecedefine import *
 from piece.piecebase import calc_shannon_entropy, rank_lists_byfirst, generate_shannon_bynum
-from piece.primerdesign import piecedesign
+from piece.piecedesign import piecedesign
 from piece.pieceevaluate import pieceevaluate
 
 import os
