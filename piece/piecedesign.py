@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/17
+更改日期: 2022/10/25
 '''
 
 from piece.piecedefine import *
@@ -15,7 +15,7 @@ import subprocess, platform
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/17
+更改日期: 2022/10/25
 '''
 #多序列比对、保守区间遍历、PCR设计等
 class piecedesign() :
@@ -33,17 +33,19 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/09/09
+    更改日期: 2022/10/25
     '''
     #subprocess调用muscle进行多序列比对
     def callmuscle(self) :
         self._base.baselog('MUSCLE 多序列对比中...', ends='')
+        #!!!因为MSUCLE输出很多，所以Popen()中的stdout=PIPE和wait()不能结合使用，因为操作系统的管道大小有上限
+        #很久之前就解决过的问题，但是因为对MUSCLE不了解，再次出现
         cm = subprocess.Popen('{}/{} --align {} --output {}'.format\
             (self._todo_path, PLATFORM_TODO[self.__platform], self.filepath, self.tmpfile_path),\
-            shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        cm.wait()
-        #self._base.debuglog(BASE_DEBUG_LEVEL1, cm.communicate()[1].decode())
-        self._base.baselog('\rMUSCLE 多序列比对完成' if cm.returncode == 0 else 'MUSCLE 多序列比对异常')
+            shell=True, stderr=subprocess.PIPE)
+        cm.communicate()
+
+        self._base.baselog('\rMUSCLE 多序列比对完成' if cm.returncode == 0 else self._base.errorlog('MUSCLE 多序列比对异常'))
 
     '''
     创建人员: Nerium

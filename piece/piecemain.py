@@ -9,6 +9,7 @@ from piece.piecedefine import *
 from piece.piecebase import calc_shannon_entropy, rank_lists_byfirst, generate_shannon_bynum
 from piece.piecedesign import piecedesign
 from piece.pieceevaluate import pieceevaluate
+from piece.piecedataprogress import piecedataprogress
 
 import os
 from collections import Counter
@@ -165,6 +166,17 @@ class piecemain() :
         if self.args.file is not None :
             #先保存原始数据
             self.getorigin()
+
+        #如果开启则进行数据清洗，最后将xx.fasta清洗存为xx.filt.fasta
+        if self.args.progress is not None :
+            pcdp = piecedataprogress(self._base, self._origindata)
+
+            pcdp.check_info()
+
+            self._origindata = pcdp.filt_data()
+
+            self.args.file = self.args.file.replace('.fasta', '.filt.fasta')
+            pcdp.write_in_file(self.args.file)
 
         #如果开启，则调用muscle进行多序列比对；探查保守区间；循环论证最佳引物
         if self.args.alldesign is not None :

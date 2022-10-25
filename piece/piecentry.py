@@ -11,6 +11,7 @@ from piece.piecebase import piecebase
 from piece.piecemain import piecemain
 
 from argparse import ArgumentParser
+import sys
 
 '''
 创建人员: Nerium
@@ -23,6 +24,7 @@ def entry() :
     #命令行程序
     paramparse = ArgumentParser(description='primer piece', epilog = __version__)
     paramparse.add_argument('--file', '-f', help='初始序列文件')
+    paramparse.add_argument('--progress', '-p', help='基础数据清洗')
     paramparse.add_argument('--alldesign', '-a', nargs='+', help='多序列引物设计')
     paramparse.add_argument('--debuglevel', '-d', help='调试等级', type=int)
     paramparse.add_argument('--evaluate', '-e', nargs='+', help='引物标准评估')
@@ -30,8 +32,10 @@ def entry() :
 
     #解析命令行
     args = paramparse.parse_args()
+    #命令行为空时，直接打印使用信息并退出
+    if len(sys.argv) == 1 : paramparse.print_usage(); sys.exit()
 
-    #生成流程主类
+    #使用流程主类生成对象
     pc = piecemain(args, piecebase(BASE_DEBUG_LEVEL0 if args.debuglevel is None else args.debuglevel))
     #开始进入主流程
     pc.maintrunk()
