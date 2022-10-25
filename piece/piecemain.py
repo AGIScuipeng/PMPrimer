@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/24
+更改日期: 2022/10/25
 '''
 
 from piece.piecedefine import *
@@ -17,7 +17,7 @@ from collections import Counter
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/21
+更改日期: 2022/10/25
 '''
 #流程主类
 class piecemain() :
@@ -38,7 +38,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/09/12
+    更改日期: 2022/10/25
     '''
     #原始数据的保存
     def getorigin(self) :
@@ -53,7 +53,7 @@ class piecemain() :
                 if slt_id != '' and slt_seq != '' : self._origindata.update({slt_id: slt_seq})
 
             #如果不需要MUSCLE对齐，那么认为原始内容就是对齐的，所以直接计算香农熵
-            if 'muscle' not in self.args.alldesign :
+            if self.args.alldesign is not None and 'muscle' not in self.args.alldesign :
                 seqlen, seqcnt = len(next(iter(self._origindata.values()))), len(self._origindata.values())
                 for bp in range(seqlen) : self._origindata_shannon.append(calc_shannon_entropy([Counter([seq[bp] for seq in self._origindata.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST]))
 
@@ -157,12 +157,14 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/10/21
+    更改日期: 2022/10/25
     '''
     #主流程函数
     def maintrunk(self) :
-        #先保存原始数据
-        self.getorigin()
+
+        if self.args.file is not None :
+            #先保存原始数据
+            self.getorigin()
 
         #如果开启，则调用muscle进行多序列比对；探查保守区间；循环论证最佳引物
         if self.args.alldesign is not None :

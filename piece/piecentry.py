@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/08
+更改日期: 2022/10/25
 '''
 
 from piece.__auxiliary__ import __version__
@@ -16,7 +16,7 @@ from argparse import ArgumentParser
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/08
+更改日期: 2022/10/25
 '''
 #封装包程序的入口
 def entry() :
@@ -25,7 +25,7 @@ def entry() :
     paramparse.add_argument('--file', '-f', help='初始序列文件')
     paramparse.add_argument('--alldesign', '-a', nargs='+', help='多序列引物设计')
     paramparse.add_argument('--debuglevel', '-d', help='调试等级', type=int)
-    paramparse.add_argument('--evaluate', '-e', help='引物标准评估')
+    paramparse.add_argument('--evaluate', '-e', nargs='+', help='引物标准评估')
     paramparse.add_argument('--nextuse', '-n', help='后续SNP挖掘和物种鉴定')
 
     #解析命令行
