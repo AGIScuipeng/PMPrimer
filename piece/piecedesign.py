@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/25
+更改日期: 2022/10/26
 '''
 
 from piece.piecedefine import *
@@ -15,7 +15,7 @@ import subprocess, platform
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/25
+更改日期: 2022/10/26
 '''
 #多序列比对、保守区间遍历、PCR设计等
 class piecedesign() :
@@ -90,7 +90,7 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/10/10
+    更改日期: 2022/10/26
     '''
     #通过香农熵挖掘所有保守区域
     def detect_conser_area_shannon(self, shannons, seqdict, threshold=generate_shannon_bynum(0.95), minlen=15) :
@@ -100,7 +100,7 @@ class piecedesign() :
         #如果保守区域个数<2 且 窗口<4 则扩大窗口继续尝试
         while len(posmem) < 2 and window < 4 :
             while posr < seqlen :
-                while calc_conserve_termina_shannon(shannons, posl, posr, mem, threshold) and posr < seqlen : posr += 1
+                while calc_conserve_termina_shannon(shannons, posl, posr, mem, threshold, window=window) and posr < seqlen : posr += 1
                 if posr - posl + (1 if posr-posl == 0 else 0) >= minlen and mem[1] <= threshold : posmem.append([posl, posr-1 if posr < seqlen and posl != posr else posr])
                 posr += 1; posl = posr; mem = [1.0]*2
             window += 1; posl, posr, seqlen, mem = 1, 1, len(shannons), [1.0]*2

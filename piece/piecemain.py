@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/25
+更改日期: 2022/10/26
 '''
 
 from piece.piecedefine import *
@@ -18,7 +18,7 @@ from collections import Counter
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/25
+更改日期: 2022/10/26
 '''
 #流程主类
 class piecemain() :
@@ -158,7 +158,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/10/25
+    更改日期: 2022/10/26
     '''
     #主流程函数
     def maintrunk(self) :
@@ -187,6 +187,7 @@ class piecemain() :
                 #保存对比后的数据
                 self.aftercmp(pcds)
 
+            self._base.debuglog(BASE_DEBUG_LEVEL2, self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon)
             #挖掘出所有符合条件的保守区间
             conser = pcds.detect_conser_area_shannon(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon,
                                                     self._comparedata if 'muscle' in self.args.alldesign else self._origindata)
