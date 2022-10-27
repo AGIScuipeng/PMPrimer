@@ -43,12 +43,15 @@ def seq_after_filt_len(data) :
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/10/25
+更改日期: 2022/10/27
 '''
-#序列集去重data = {id: seq}; seqset = {seq : {id1, id2, ...}}
+#序列集去重data = {id: seq}; seqset = {seq : {id1, id2, ...}}（id1和id2保证了seq相同的情况下亚种层次的不同）
 def seq_set(data) : 
     seqset = dict()
-    for id, seq in data.items() : seqset.update({seq : seqset.get(seq, set()).union({id, })})
+    for id, seq in data.items() : 
+        idsplit = split_all_from_str(id)
+        if ' '.join(idsplit[1:]) in [' '.join(split_all_from_str(x)[1:]) for x in seqset.get(seq, set())] : continue
+        seqset.update({seq : seqset.get(seq, set()).union({id, })})
 
     return seqset
 
@@ -56,17 +59,22 @@ def seq_set(data) :
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/10/25
+更改日期: 2022/10/27
 '''
-#序列集双去重 seqset = {seq : {id1, id2, ...}}; return {seq: id}
+#序列集去重后id调整 seqset = {seq1 : {id1, id2, ...}}; return {id1 :seq1, id2:seq1}
 def seq_keep1id_after_set(seqset) :
-    return {k: v.pop() for k, v in seqset.items()}
+    temp = {}
+    for k, v in seqset.items() :
+        for id in v :
+            temp.setdefault(id, k)
+
+    return temp
 
 '''
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/10/25
+更改日期: 2022/10/27
 '''
 #数据清洗功能类
 class piecedataprogress() :
@@ -91,14 +99,14 @@ class piecedataprogress() :
     创建人员: Nerium
     创建日期: 2022/10/25
     更改人员: Nerium
-    更改日期: 2022/10/25
+    更改日期: 2022/10/27
     '''
     #先长度清洗，后去重，得到的是最后的结果
     def filt_data(self) : 
         ids_list = seq_after_filt_len(self._data)
         resdata = seq_keep1id_after_set(seq_set({id : self._data[id] for id in ids_list}))
 
-        self._data = {v: k for k, v in resdata.items()}
+        self._data = resdata
         return self._data
 
     '''
