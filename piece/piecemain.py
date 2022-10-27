@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/26
+更改日期: 2022/10/27
 '''
 
 from piece.piecedefine import *
@@ -18,7 +18,7 @@ from collections import Counter
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/26
+更改日期: 2022/10/27
 '''
 #流程主类
 class piecemain() :
@@ -31,6 +31,16 @@ class piecemain() :
         #原始、对比数据的保存
         self._origindata = {}; self._origindata_shannon = []
         self._comparedata = {}; self._comparedata_shannon = []
+
+        #遍历alldesign找到threshold:0.xx等参数
+        for x in self.args.alldesign[::-1] :
+            if 'threshold' in x : 
+                try : self.__threshold = float(x.split(':')[-1])
+                except : self.__threshold = 0.95
+
+        #保证参数有默认值
+        try : self.__threshold = self.__threshold
+        except : self.__threshold = 0.95
 
         #基础模块的获取，log等功能都在其中
         self._base = pbase
@@ -158,7 +168,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/10/26
+    更改日期: 2022/10/27
     '''
     #主流程函数
     def maintrunk(self) :
@@ -190,7 +200,8 @@ class piecemain() :
             self._base.debuglog(BASE_DEBUG_LEVEL2, self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon)
             #挖掘出所有符合条件的保守区间
             conser = pcds.detect_conser_area_shannon(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon,
-                                                    self._comparedata if 'muscle' in self.args.alldesign else self._origindata)
+                                                    self._comparedata if 'muscle' in self.args.alldesign else self._origindata,
+                                                    threshold=generate_shannon_bynum(self.__threshold))
             self._base.baselog('保守区间列表 / List Of Conservative Area is : \n{0}'.format(conser))
 
             #挖掘出所有符合条件的非保守区间
@@ -208,10 +219,10 @@ class piecemain() :
 
             #根据haplotype进行分析和后续的引物设计
             self._alltype = {}
-            self._base.baselog('\n保守区间的haplotype情况如下：')
+            if 'haplo' in self.args.alldesign : self._base.baselog('\n保守区间的haplotype情况如下：')
             for rang in conser :
                 alltype = pcds.detect_haplotype(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
-                self._base.baselog('Area {}; \tLen : {}; \t {}'.format(rang, rang[1]-rang[0]+1, len(alltype)))
+                if 'haplo' in self.args.alldesign : self._base.baselog('Area {}; \tLen : {}; \t {}'.format(rang, rang[1]-rang[0]+1, len(alltype)))
                 self._alltype.setdefault(str(rang), alltype)
 
             if 'primer' in self.args.alldesign :
