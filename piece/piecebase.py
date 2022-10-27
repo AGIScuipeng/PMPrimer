@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/08
+更改日期: 2022/10/27
 '''
 
 from piece.piecedefine import *
@@ -127,6 +127,21 @@ def generate_shannon_bynum(threshold) :
 #根据列表1对两个列表进行排序
 def rank_lists_byfirst(list1, list2, reverse=False) :
     return [list(x) for x in zip(*(sorted(zip(list1, list2), key=lambda x: (x[0], x[1]), reverse=reverse)))]
+
+'''
+创建人员: Nerium
+创建日期: 2022/10/27
+更改人员: Nerium
+更改日期: 2022/10/27
+'''
+#从字符串中分离出id，属，种，亚种
+def split_all_from_str(string) :
+    strsplit = string.split(' ')
+
+    if strsplit[3] == 'subsp.' or strsplit[3] == 'variant' :
+        return strsplit[0], strsplit[1], strsplit[2], strsplit[4]
+
+    return strsplit[0], strsplit[1], strsplit[2], strsplit[2]
 
 '''
 创建人员: Nerium

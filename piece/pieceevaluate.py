@@ -6,6 +6,7 @@
 '''
 
 from piece.piecedefine import *
+from piece.piecebase import split_all_from_str
 
 '''
 创建人员: Nerium
@@ -62,7 +63,7 @@ class pieceevaluate() :
         rates = {}
         for amp in self._posmem :
             spdf, spdr, seqcnt = self._primer_dict[amp[0][0]], self._primer_dict[amp[1][0]], len(self._seqdict.values())
-            rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), [min(len({'_'.join(s.split('\t')[-1].split('_')) for v in spdf[0].values() for s in v if g in s}), len({'_'.join(s.split('\t')[-1].split('_')) for v in spdr[1].values() for s in v if g in s})) / len([True for s in self._statistic_cnt[2] if g in s]) for g in self._statistic_cnt[0]])
+            rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), [min(len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v if g in s}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v if g in s})) / len([True for s in self._statistic_cnt[2] if g in s]) for g in self._statistic_cnt[0]])
 
         self._base.baselog('\n'.join(['{} : 亚种{:.2f}%'.format(k, v[0]*100) for k, v in rates.items()]))
         self._cover_rates = rates
@@ -81,13 +82,13 @@ class pieceevaluate() :
         reso, genuset, speset, subset = {}, set(), set(), set()
         for amp in self._posmem :
             diverse1, diverse2, resdict = amp[0][1], amp[1][0], dict()
-            for spe, seq in self._seqdict.items() : 
+            for idallstr, seq in self._seqdict.items() : 
                 #遍历过程中统计所有的种和亚种
-                idsplit = spe.split('\t')[-1].split('_')
-                genuset.add(idsplit[0]); speset.add('_'.join(idsplit[:2])); subset.add('_'.join(idsplit))
+                idsplit = split_all_from_str(idallstr)
+                genuset.add(idsplit[1]); speset.add('_'.join(idsplit[1:3])); subset.add('_'.join(idsplit[1:4]))
 
-                if seq[diverse1:diverse2] in resdict : resdict[seq[diverse1:diverse2]].add('_'.join(idsplit))
-                else : resdict.setdefault(seq[diverse1:diverse2], {'_'.join(idsplit),})
+                if seq[diverse1:diverse2] in resdict : resdict[seq[diverse1:diverse2]].add('_'.join(idsplit[1:]))
+                else : resdict.setdefault(seq[diverse1:diverse2], {'_'.join(idsplit[1:]),})
 
             #请注意dict赋值存在直接指向、浅拷贝、深拷贝问题，如果后续resdict修改了，则此处需要改为深拷贝
             self._diversedict.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), resdict)
