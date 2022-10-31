@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/10/27
+更改日期: 2022/10/31
 '''
 
 from piece.piecedefine import *
@@ -72,6 +72,23 @@ def seq_keep1id_after_set(seqset) :
 
 '''
 创建人员: Nerium
+创建日期: 2022/10/28
+更改人员: Nerium
+更改日期: 2022/10/31
+'''
+#去除sp.未分类的序列 seqset = {id1: seq1, id2: seqx}
+def seq_remove_unclassfied(seqset) :
+    temp = {}
+    for id, seq in seqset.items() :
+        idsplit = split_all_from_str(id)
+        if idsplit[2] == 'sp.' or idsplit[1] == 'Uncultured' : continue
+
+        temp.update({id: seq})
+
+    return temp
+
+'''
+创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
 更改日期: 2022/10/27
@@ -99,14 +116,14 @@ class piecedataprogress() :
     创建人员: Nerium
     创建日期: 2022/10/25
     更改人员: Nerium
-    更改日期: 2022/10/27
+    更改日期: 2022/10/28
     '''
     #先长度清洗，后去重，得到的是最后的结果
     def filt_data(self) : 
         ids_list = seq_after_filt_len(self._data)
         resdata = seq_keep1id_after_set(seq_set({id : self._data[id] for id in ids_list}))
 
-        self._data = resdata
+        self._data = seq_remove_unclassfied(resdata)
         return self._data
 
     '''

@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/27
+更改日期: 2022/10/28
 '''
 
 from piece.piecedefine import *
@@ -18,7 +18,7 @@ from collections import Counter
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/27
+更改日期: 2022/10/28
 '''
 #流程主类
 class piecemain() :
@@ -49,7 +49,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/10/25
+    更改日期: 2022/10/28
     '''
     #原始数据的保存
     def getorigin(self) :
@@ -64,7 +64,7 @@ class piecemain() :
                 if slt_id != '' and slt_seq != '' : self._origindata.update({slt_id: slt_seq})
 
             #如果不需要MUSCLE对齐，那么认为原始内容就是对齐的，所以直接计算香农熵
-            if self.args.alldesign is not None and 'muscle' not in self.args.alldesign :
+            if self.args.alldesign != ['default'] and 'muscle' not in self.args.alldesign :
                 seqlen, seqcnt = len(next(iter(self._origindata.values()))), len(self._origindata.values())
                 for bp in range(seqlen) : self._origindata_shannon.append(calc_shannon_entropy([Counter([seq[bp] for seq in self._origindata.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST]))
 
