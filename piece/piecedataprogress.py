@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/10/31
+更改日期: 2022/11/01
 '''
 
 from piece.piecedefine import *
@@ -22,22 +22,23 @@ def seq_everage_len(data) :
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/10/25
+更改日期: 2022/11/01
 '''
 #获取 data = {id : seq}; ret = [id1, id2]
 def seq_after_filt_len(data) :
     datacnt = {}
     for id, seq in data.items() : datacnt.update({round(len(seq), -1) : datacnt.get(round(len(seq), -1), set()).union({id, })})
-    datacnt = {x:y for x, y in sorted(datacnt.items(), key=lambda x : x[1])}
+    datacnt = {x:y for x, y in sorted(datacnt.items(), key=lambda z : len(z[1]), reverse=True)}
 
     key_list = list(datacnt.keys())
+    '''
     rate_content = 0
     all_content = len(data)
     for idx, k in enumerate(key_list) :
         rate_content += len(datacnt[k])
         if rate_content / all_content > 0.7 : break
-
-    return [id for k in key_list[:idx+1] for id in datacnt[k]]
+    '''
+    return [id for k in key_list[:1] for id in datacnt[k]]
 
 '''
 创建人员: Nerium
@@ -74,14 +75,14 @@ def seq_keep1id_after_set(seqset) :
 创建人员: Nerium
 创建日期: 2022/10/28
 更改人员: Nerium
-更改日期: 2022/10/31
+更改日期: 2022/11/01
 '''
 #去除sp.未分类的序列 seqset = {id1: seq1, id2: seqx}
 def seq_remove_unclassfied(seqset) :
     temp = {}
     for id, seq in seqset.items() :
         idsplit = split_all_from_str(id)
-        if idsplit[2] == 'sp.' or idsplit[1] == 'Uncultured' : continue
+        if idsplit[2] == 'sp.' or idsplit[1] == 'Uncultured' or idsplit[1] == 'UNVERIFIED:' : continue
 
         temp.update({id: seq})
 
