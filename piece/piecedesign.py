@@ -2,11 +2,11 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/27
+更改日期: 2022/11/09
 '''
 
-from piece.piecedefine import *
-from piece.piecebase import calc_conserve_continue, calc_conserve_termina_shannon, generate_shannon_bynum
+from .piecedefine import *
+from .piecebase import calc_conserve_continue, calc_conserve_termina_shannon, generate_shannon_bynum
 
 from primer3 import bindings
 import subprocess, platform
