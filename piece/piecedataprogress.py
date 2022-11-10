@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/11/09
+更改日期: 2022/11/10
 '''
 
 from .piecedefine import *
@@ -92,7 +92,7 @@ def seq_remove_unclassfied(seqset) :
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/10/27
+更改日期: 2022/11/10
 '''
 #数据清洗功能类
 class piecedataprogress() :
@@ -110,21 +110,24 @@ class piecedataprogress() :
     #数据集基本信息
     def check_info(self) :
         self._base.baselog('序列集共有序列 {0} 条 / Number Of Sequece Data is {0}'.format(len(self._data)))
-        self._base.baselog('序列集平均长度 {0} / Everage Length Of Sequece Data is {0} bp'.format(seq_everage_len(self._data)))
+        self._base.baselog('序列集平均长度 {0} 位 / Everage Length Of Sequece Data is {0} bp'.format(seq_everage_len(self._data)))
         self._base.baselog('去重后序列集共 {0} 条 / Number After Duplicate Remove is {0}'.format(len(seq_set(self._data))))
 
     '''
     创建人员: Nerium
     创建日期: 2022/10/25
     更改人员: Nerium
-    更改日期: 2022/10/28
+    更改日期: 2022/11/10
     '''
     #先长度清洗，后去重，得到的是最后的结果
     def filt_data(self) : 
         ids_list = seq_after_filt_len(self._data)
+        self._base.baselog('长度清洗后共 {0} 条 / Number After Keep Majority Length is {0}'.format(len(ids_list)))
         resdata = seq_keep1id_after_set(seq_set({id : self._data[id] for id in ids_list}))
+        self._base.baselog('同序列保留亚种后共 {0} 条 / Number After Keep Different Subspecies When Same Sequece is {0}'.format(len(resdata)))
 
         self._data = seq_remove_unclassfied(resdata)
+        self._base.baselog('未分类序列清洗后共 {0} 条 / Number After Remove Unclassfied is {0}'.format(len(self._data)))
         return self._data
 
     '''
