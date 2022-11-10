@@ -75,14 +75,14 @@ def seq_keep1id_after_set(seqset) :
 创建人员: Nerium
 创建日期: 2022/10/28
 更改人员: Nerium
-更改日期: 2022/11/01
+更改日期: 2022/11/10
 '''
 #去除sp.未分类的序列 seqset = {id1: seq1, id2: seqx}
 def seq_remove_unclassfied(seqset) :
     temp = {}
     for id, seq in seqset.items() :
         idsplit = split_all_from_str(id)
-        if idsplit[2] == 'sp.' or idsplit[1] == 'Uncultured' or idsplit[1] == 'UNVERIFIED:' : continue
+        if idsplit[2] == 'sp.' or idsplit[1] == 'Uncultured' or 'UNVERIFIED' in idsplit[1] or idsplit[1].isalpha() is False : continue
 
         temp.update({id: seq})
 
