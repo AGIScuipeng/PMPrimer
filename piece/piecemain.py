@@ -18,7 +18,7 @@ from collections import Counter
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/28
+更改日期: 2022/11/10
 '''
 #流程主类
 class piecemain() :
@@ -41,6 +41,10 @@ class piecemain() :
         #保证参数有默认值
         try : self.__threshold = self.__threshold
         except : self.__threshold = 0.95
+
+        #默认数据清洗相关参数，以及遍历alldesign找到相关参数
+        self.__data_filt = {'len' : True, 'sameseq' : True}
+        if 'notlen' in self.args.progress : self.__data_filt.update({'len' : False})
 
         #基础模块的获取，log等功能都在其中
         self._base = pbase
@@ -168,7 +172,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/10/27
+    更改日期: 2022/11/10
     '''
     #主流程函数
     def maintrunk(self) :
@@ -179,7 +183,7 @@ class piecemain() :
 
         #如果开启则进行数据清洗，最后将xx.fasta清洗存为xx.filt.fasta
         if self.args.progress is not None :
-            pcdp = piecedataprogress(self._base, self._origindata)
+            pcdp = piecedataprogress(self._base, self._origindata, self.__data_filt)
 
             pcdp.check_info()
 

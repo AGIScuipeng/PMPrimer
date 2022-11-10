@@ -96,8 +96,9 @@ def seq_remove_unclassfied(seqset) :
 '''
 #数据清洗功能类
 class piecedataprogress() :
-    def __init__(self, pbase, data) -> None:
+    def __init__(self, pbase, data, filt_opt) -> None:
         self._data = data
+        self.__filt_opt = filt_opt
 
         self._base = pbase
 
@@ -115,19 +116,46 @@ class piecedataprogress() :
 
     '''
     创建人员: Nerium
+    创建日期: 2022/11/10
+    更改人员: Nerium
+    更改日期: 2022/11/10
+    '''
+    #数据集基本信息
+    def check_gnu_spe_sub_info(self) :
+        ids_list = list(self._data.keys())
+        subset = set()
+        speset = set()
+        gnuset = set()
+        for id in ids_list : 
+            id_temp = split_all_from_str(id)
+            if id_temp[2] == 'sp.' or id_temp[1] == 'Uncultured' or 'UNVERIFIED' in id_temp[1] or id_temp[1].isalpha() is False : continue
+
+            subset.add(' '.join(id_temp[1:]))
+            speset.add(' '.join(id_temp[1:3]))
+            gnuset.add(id_temp[1])
+        self._base.baselog('清洗后亚种共 {} 个'.format(len(subset)))
+        self._base.baselog('清洗后物种共 {} 个'.format(len(speset)))
+        self._base.baselog('清洗后属共 {} 个'.format(len(gnuset)))
+        self._base.debuglog(BASE_DEBUG_LEVEL1, gnuset)
+        self._base.debuglog(BASE_DEBUG_LEVEL2, speset)
+        self._base.debuglog(BASE_DEBUG_LEVEL2, subset)
+
+    '''
+    创建人员: Nerium
     创建日期: 2022/10/25
     更改人员: Nerium
     更改日期: 2022/11/10
     '''
     #先长度清洗，后去重，得到的是最后的结果
     def filt_data(self) : 
-        ids_list = seq_after_filt_len(self._data)
+        ids_list = seq_after_filt_len(self._data) if self.__filt_opt.get('len', True) else list(self._data.keys())
         self._base.baselog('长度清洗后共 {0} 条 / Number After Keep Majority Length is {0}'.format(len(ids_list)))
         resdata = seq_keep1id_after_set(seq_set({id : self._data[id] for id in ids_list}))
         self._base.baselog('同序列保留亚种后共 {0} 条 / Number After Keep Different Subspecies When Same Sequece is {0}'.format(len(resdata)))
 
         self._data = seq_remove_unclassfied(resdata)
         self._base.baselog('未分类序列清洗后共 {0} 条 / Number After Remove Unclassfied is {0}'.format(len(self._data)))
+        self.check_gnu_spe_sub_info()
         return self._data
 
     '''
