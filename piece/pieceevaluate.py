@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2022/11/09
+更改日期: 2022/11/16
 '''
 
 from .piecedefine import *
@@ -27,7 +27,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/08
     更改人员: Nerium
-    更改日期: 2022/10/17
+    更改日期: 2022/11/16
     '''
     #根据条件从区间中过滤出合适的保守区间和非保守区间(conser1)nonconser(conser2)
     #nonconser_sort是根据多样性由高到低排序的，conser是根据位置排序的
@@ -45,6 +45,8 @@ class pieceevaluate() :
                         posmem.append((self._conser[idx-1], self._conser[idx]))
                     else : self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 或 {1} 没有引物/{0} Or {1} No Primer.'.format(rang, self._conser[idx-1]))
                     break
+                else :
+                    self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 或 {1} 多样性超过阈值/ {0} Or {1} Haplotype Overtake Threshold'.format(rang, self._conser[idx-1]))
 
         self._base.successlog('已经完成扩增子选定 共{}个'.format(len(posmem)))
         self._base.debuglog(BASE_DEBUG_LEVEL1, posmem)

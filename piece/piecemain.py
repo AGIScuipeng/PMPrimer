@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/09
+更改日期: 2022/11/16
 '''
 
 from .piecedefine import *
@@ -44,7 +44,7 @@ class piecemain() :
 
         #默认数据清洗相关参数，以及遍历alldesign找到相关参数
         self.__data_filt = {'len' : True, 'sameseq' : True}
-        if 'notlen' in self.args.progress : self.__data_filt.update({'len' : False})
+        if self.args.progress is not None and 'notlen' in self.args.progress : self.__data_filt.update({'len' : False})
 
         #基础模块的获取，log等功能都在其中
         self._base = pbase
@@ -53,7 +53,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/10/28
+    更改日期: 2022/11/16
     '''
     #原始数据的保存
     def getorigin(self) :
@@ -68,9 +68,11 @@ class piecemain() :
                 if slt_id != '' and slt_seq != '' : self._origindata.update({slt_id: slt_seq})
 
             #如果不需要MUSCLE对齐，那么认为原始内容就是对齐的，所以直接计算香农熵
-            if self.args.alldesign != ['default'] and 'muscle' not in self.args.alldesign :
-                seqlen, seqcnt = len(next(iter(self._origindata.values()))), len(self._origindata.values())
-                for bp in range(seqlen) : self._origindata_shannon.append(calc_shannon_entropy([Counter([seq[bp] for seq in self._origindata.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST]))
+            if 'muscle' not in self.args.alldesign :
+                try :
+                    seqlen, seqcnt = len(next(iter(self._origindata.values()))), len(self._origindata.values())
+                    for bp in range(seqlen) : self._origindata_shannon.append(calc_shannon_entropy([Counter([seq[bp] for seq in self._origindata.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST]))
+                except : self._base.errorlog('序列并未对齐/ Sequences Not Align Yet')
 
     '''
     创建人员: Nerium
@@ -119,7 +121,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/10/09
+    更改日期: 2022/11/16
     '''
     #调用primer3-py进行引物设计
     #可以先将序列去重再进行引物设计，但是保存原始信息会比较麻烦，快速开发先走流程
@@ -136,6 +138,11 @@ class piecemain() :
 
             for spe, seq in data.items() :
                 if seq[rang[0]-1:rang[1]].count('-') : continue
+
+                #简并符号不算
+                tmp_seq = seq[rang[0]-1:rang[1]]
+                if len(tmp_seq) - tmp_seq.count('A') - tmp_seq.count('T') - tmp_seq.count('C') - tmp_seq.count('G') - tmp_seq.count('-') : 
+                    self._base.warnlog('{} 含有简并符号故跳过/ Skip Because Have Special BP'.format(spe)); continue
 
                 seq_args = {
                     'SEQUENCE_ID': '{}-{}'.format(rang[0], rang[1]),

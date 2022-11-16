@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/11/10
+更改日期: 2022/11/16
 '''
 
 from .piecedefine import *
@@ -22,7 +22,7 @@ def seq_everage_len(data) :
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/11/01
+更改日期: 2022/11/16
 '''
 #获取 data = {id : seq}; ret = [id1, id2]
 def seq_after_filt_len(data) :
@@ -31,14 +31,14 @@ def seq_after_filt_len(data) :
     datacnt = {x:y for x, y in sorted(datacnt.items(), key=lambda z : len(z[1]), reverse=True)}
 
     key_list = list(datacnt.keys())
-    '''
+
     rate_content = 0
     all_content = len(data)
     for idx, k in enumerate(key_list) :
         rate_content += len(datacnt[k])
-        if rate_content / all_content > 0.7 : break
-    '''
-    return [id for k in key_list[:1] for id in datacnt[k]]
+        if rate_content / all_content > 0.9 : break
+
+    return [id for k in key_list[:idx+1] for id in datacnt[k]]
 
 '''
 创建人员: Nerium

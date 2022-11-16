@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/09
+更改日期: 2022/11/16
 '''
 
 from .piecedefine import *
@@ -147,7 +147,7 @@ def split_all_from_str(string) :
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/28
+更改日期: 2022/11/16
 '''
 #基础模块，log等功能都在其中
 class piecebase() :
@@ -158,7 +158,7 @@ class piecebase() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/09/28
+    更改日期: 2022/11/16
     '''
     def baselog(self, msg, ends='\n') :
         print(msg, end=ends)
@@ -168,6 +168,9 @@ class piecebase() :
 
     def successlog(self, msg, ends='\n') :
         print('\033[0;32;40m{}\033[0m'.format(msg), end=ends)
+
+    def warnlog(self, msg, ends='\n') :
+        print('\033[0;36;40m{}\033[0m'.format(msg), end=ends)
 
     def errorlog(self, msg, ends='\n') :
         raise SystemExit('\033[0;31;40m{}\033[0m'.format(msg))
