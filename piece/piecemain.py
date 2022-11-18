@@ -45,6 +45,7 @@ class piecemain() :
         #默认数据清洗相关参数，以及遍历alldesign找到相关参数
         self.__data_filt = {'len' : True, 'sameseq' : True}
         if self.args.progress is not None and 'notlen' in self.args.progress : self.__data_filt.update({'len' : False})
+        if self.args.progress is not None and 'notsameseq' in self.args.progress : self.__data_filt.update({'sameseq' : False})
 
         #基础模块的获取，log等功能都在其中
         self._base = pbase

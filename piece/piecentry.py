@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/09
+更改日期: 2022/11/18
 '''
 
 from .__auxiliary__ import __version__
@@ -17,14 +17,14 @@ import sys
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/27
+更改日期: 2022/11/18
 '''
 #封装包程序的入口
 def entry() :
     #命令行程序
     paramparse = ArgumentParser(description='primer piece', epilog = __version__)
     paramparse.add_argument('--file', '-f', help='初始序列文件')
-    paramparse.add_argument('--progress', '-p', help='基础数据清洗')
+    paramparse.add_argument('--progress', '-p', nargs='+', help='基础数据清洗')
     paramparse.add_argument('--alldesign', '-a', nargs='+', help='多序列引物设计', default=['default'])
     paramparse.add_argument('--debuglevel', '-d', help='调试等级', type=int, default=0)
     paramparse.add_argument('--evaluate', '-e', nargs='+', help='引物标准评估', default=['default'])

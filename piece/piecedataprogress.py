@@ -6,7 +6,8 @@
 '''
 
 from .piecedefine import *
-from .piecebase import split_all_from_str
+from .piecebase import split_all_from_str, mismatch_btw_2seq
+from multiprocessing import Pool, cpu_count
 
 '''
 创建人员: Nerium
@@ -142,6 +143,47 @@ class piecedataprogress() :
 
     '''
     创建人员: Nerium
+    创建日期: 2022/11/18
+    更改人员: Nerium
+    更改日期: 2022/11/18
+    '''
+    #物种内计算差异矩阵
+    def calc_mismath_matrix(self) :
+        tmp_spes = {}
+        #分成物种存储相应id, seq
+        for id, seq in self._data.items() :
+            spe = ' '.join(split_all_from_str(id)[1:3])
+            if spe in tmp_spes : tmp_spes[spe].update({id: seq})
+            else : tmp_spes.setdefault(spe, {id: seq})
+
+        #进程池进行差异矩阵计算
+        jobs = []
+        pool = Pool(cpu_count()//2)
+        for spe, v in tmp_spes.items() :
+            for id1, seq1 in v.items() :
+                for id2, seq2 in v.items() :
+                    if id1 == id2 : jobs.append((spe, id1, id2, 0)); continue
+                    jobs.append((spe, id1, id2, pool.apply_async(func=mismatch_btw_2seq, args=(seq1, seq2))))
+        pool.close()
+        pool.join()
+
+        #存储为差异矩阵
+        mismatch_matrix = {}
+        for spe in tmp_spes.keys() : mismatch_matrix.update({spe : dict()})
+        for job in jobs :
+            spe, id1, id2, score = job[0], job[1], job[2], 0 if job[3] == 0 else job[3].get()
+            if score == -1 : self._base.errorlog('序列并未对齐/ Sequences Not Alignment')
+
+            if id1 in mismatch_matrix[spe] : mismatch_matrix[spe][id1].update({id2 : score})
+            else : mismatch_matrix[spe].setdefault(id1, {id2: score})
+        '''
+        tmpk = list(mismatch_matrix.keys())[0]
+        #tmpkk = list(mismatch_matrix[tmpk].keys())[0]
+        for kk in mismatch_matrix[tmpk].keys() :
+            print(sorted(list(mismatch_matrix[tmpk][kk].values())), sum(mismatch_matrix[tmpk][kk].values()) / len(mismatch_matrix[tmpk][kk].values()))
+        '''
+    '''
+    创建人员: Nerium
     创建日期: 2022/10/25
     更改人员: Nerium
     更改日期: 2022/11/10
@@ -150,11 +192,12 @@ class piecedataprogress() :
     def filt_data(self) : 
         ids_list = seq_after_filt_len(self._data) if self.__filt_opt.get('len', True) else list(self._data.keys())
         self._base.baselog('长度清洗后共 {0} 条 / Number After Keep Majority Length is {0}'.format(len(ids_list)))
-        resdata = seq_keep1id_after_set(seq_set({id : self._data[id] for id in ids_list}))
+        resdata = seq_keep1id_after_set(seq_set({id : self._data[id] for id in ids_list})) if self.__filt_opt.get('sameseq', True) else self._data
         self._base.baselog('同序列保留亚种后共 {0} 条 / Number After Keep Different Subspecies When Same Sequece is {0}'.format(len(resdata)))
 
         self._data = seq_remove_unclassfied(resdata)
         self._base.baselog('未分类序列清洗后共 {0} 条 / Number After Remove Unclassfied is {0}'.format(len(self._data)))
+        #self.calc_mismath_matrix()
         self.check_gnu_spe_sub_info()
         return self._data
 

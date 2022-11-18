@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/16
+更改日期: 2022/11/18
 '''
 
 from .piecedefine import *
@@ -127,6 +127,19 @@ def generate_shannon_bynum(threshold) :
 #根据列表1对两个列表进行排序
 def rank_lists_byfirst(list1, list2, reverse=False) :
     return [list(x) for x in zip(*(sorted(zip(list1, list2), key=lambda x: (x[0], x[1]), reverse=reverse)))]
+
+'''
+创建人员: Nerium
+创建日期: 2022/11/18
+更改人员: Nerium
+更改日期: 2022/11/18
+'''
+#对两个对齐的序列计算差异分数
+def mismatch_btw_2seq(seq1, seq2) :
+    if len(seq1) != len(seq2) : return -1
+
+    ret = [1 for i in range(len(seq1)) if seq1[i] != seq2[i]]
+    return len(ret)
 
 '''
 创建人员: Nerium
