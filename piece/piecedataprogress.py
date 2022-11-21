@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/11/16
+更改日期: 2022/11/21
 '''
 
 from .piecedefine import *
@@ -145,14 +145,15 @@ class piecedataprogress() :
     创建人员: Nerium
     创建日期: 2022/11/18
     更改人员: Nerium
-    更改日期: 2022/11/18
+    更改日期: 2022/11/21
     '''
     #物种内计算差异矩阵
     def calc_mismath_matrix(self) :
         tmp_spes = {}
         #分成物种存储相应id, seq
         for id, seq in self._data.items() :
-            spe = ' '.join(split_all_from_str(id)[1:3])
+            #后续可能要根据配置的物种等名称进行统计，故保留注释代码
+            spe = 'all'#' '.join(split_all_from_str(id)[1:3])
             if spe in tmp_spes : tmp_spes[spe].update({id: seq})
             else : tmp_spes.setdefault(spe, {id: seq})
 
@@ -171,17 +172,30 @@ class piecedataprogress() :
         mismatch_matrix = {}
         for spe in tmp_spes.keys() : mismatch_matrix.update({spe : dict()})
         for job in jobs :
-            spe, id1, id2, score = job[0], job[1], job[2], 0 if job[3] == 0 else job[3].get()
+            spe, id1, id2, score = job[0], split_all_from_str(job[1])[0], split_all_from_str(job[2])[0], 0 if job[3] == 0 else job[3].get()
             if score == -1 : self._base.errorlog('序列并未对齐/ Sequences Not Alignment')
 
             if id1 in mismatch_matrix[spe] : mismatch_matrix[spe][id1].update({id2 : score})
             else : mismatch_matrix[spe].setdefault(id1, {id2: score})
-        '''
-        tmpk = list(mismatch_matrix.keys())[0]
-        #tmpkk = list(mismatch_matrix[tmpk].keys())[0]
-        for kk in mismatch_matrix[tmpk].keys() :
-            print(sorted(list(mismatch_matrix[tmpk][kk].values())), sum(mismatch_matrix[tmpk][kk].values()) / len(mismatch_matrix[tmpk][kk].values()))
-        '''
+
+        #绘制聚类热力图
+
+        import seaborn as sns
+        import pandas as pd
+        import matplotlib.pyplot as plt
+
+        tmp_spe = list(mismatch_matrix.keys())[0]
+        tmp_dict = mismatch_matrix[tmp_spe]
+        data = pd.DataFrame.from_dict(tmp_dict)
+
+        cmap = sns.color_palette("coolwarm", 200)
+        sns_res = sns.clustermap(data, cmap=cmap)
+        plt.savefig('{}.png'.format('tmp'))
+
+        #输出聚类后的横坐标
+        tmp_key_list = list(mismatch_matrix[tmp_spe].keys())
+        self._base.debuglog(BASE_DEBUG_LEVEL2, [tmp_key_list[idx] for idx in sns_res.dendrogram_row.reordered_ind])
+
     '''
     创建人员: Nerium
     创建日期: 2022/10/25
