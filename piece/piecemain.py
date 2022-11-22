@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/16
+更改日期: 2022/11/22
 '''
 
 from .piecedefine import *
@@ -18,7 +18,7 @@ from collections import Counter
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/10
+更改日期: 2022/11/22
 '''
 #流程主类
 class piecemain() :
@@ -32,16 +32,40 @@ class piecemain() :
         self._origindata = {}; self._origindata_shannon = []
         self._comparedata = {}; self._comparedata_shannon = []
 
+        '''
+        扩增子设计相关参数配置
+        '''
+        self.__design_opt = {'threshold' : generate_shannon_bynum(0.95), 'minlen' : 15, 'merge': False}
         #遍历alldesign找到threshold:0.xx等参数
         for x in self.args.alldesign[::-1] :
             if 'threshold' in x : 
-                try : self.__threshold = float(x.split(':')[-1])
-                except : self.__threshold = 0.95
+                try : self.__design_opt['threshold'] = generate_shannon_bynum(float(x.split(':')[-1]))
+                except : self._base.warnlong('阈值参数解析错误/ Threshold Patameter Parse Error')
+        #遍历alldesign找到minlen:15等参数
+        for x in self.args.alldesign[::-1] :
+            if 'minlen' in x : 
+                try : self.__design_opt['minlen'] = int(x.split(':')[-1])
+                except : self._base.warnlong('设计最小值参数解析错误/ All Design Minlen Patameter Parse Error')
+        self.__design_opt['merge'] = True if 'merge' in self.args.alldesign else False
 
-        #保证参数有默认值
-        try : self.__threshold = self.__threshold
-        except : self.__threshold = 0.95
+        '''
+        扩增子评估相关参数配置
+        '''
+        self.__evaluate_opt = {'minlen' : 80, 'hpcnt' : 10}
+        #遍历alldesign找到hpcnt:10等参数
+        for x in self.args.evaluate[::-1] :
+            if 'hpcnt' in x : 
+                try : self.__evaluate_opt['hpcnt'] = int(x.split(':')[-1])
+                except : self._base.warnlong('引物特异参数解析错误/ Haplotype Number Patameter Parse Error')
+        #遍历alldesign找到minlen:15等参数
+        for x in self.args.evaluate[::-1] :
+            if 'minlen' in x : 
+                try : self.__evaluate_opt['minlen'] = int(x.split(':')[-1])
+                except : self._base.warnlong('扩增子最小值参数解析错误/ Amplicon Minlen Patameter Parse Error')
 
+        '''
+        数据清洗相关参数配置
+        '''
         #默认数据清洗相关参数，以及遍历alldesign找到相关参数
         self.__data_filt = {'len' : True, 'sameseq' : True}
         if self.args.progress is not None and 'notlen' in self.args.progress : self.__data_filt.update({'len' : False})
@@ -180,7 +204,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/11/10
+    更改日期: 2022/11/22
     '''
     #主流程函数
     def maintrunk(self) :
@@ -202,7 +226,7 @@ class piecemain() :
 
         #如果开启，则调用muscle进行多序列比对；探查保守区间；循环论证最佳引物
         if self.args.alldesign is not None :
-            pcds = piecedesign(self._base, self._todo_path, self.args.file)
+            pcds = piecedesign(self._base, self._todo_path, self.args.file, self.__design_opt)
             if 'muscle' in self.args.alldesign :
                 pcds.callmuscle()
 
@@ -212,8 +236,7 @@ class piecemain() :
             self._base.debuglog(BASE_DEBUG_LEVEL2, self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon)
             #挖掘出所有符合条件的保守区间
             conser = pcds.detect_conser_area_shannon(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon,
-                                                    self._comparedata if 'muscle' in self.args.alldesign else self._origindata,
-                                                    threshold=generate_shannon_bynum(self.__threshold))
+                                                    self._comparedata if 'muscle' in self.args.alldesign else self._origindata)
             self._base.baselog('保守区间列表 / List Of Conservative Area is : \n{0}'.format(conser))
 
             #挖掘出所有符合条件的非保守区间
@@ -242,7 +265,7 @@ class piecemain() :
 
         #如果开启，则进行最终区域选择和评估等
         if self.args.evaluate is not None :
-            try : pcel = pieceevaluate(self._base, nonconser_sort, conser, self._primer_dict, self._comparedata if 'muscle' in self.args.alldesign else self._origindata)
+            try : pcel = pieceevaluate(self._base, nonconser_sort, conser, self._primer_dict, self._comparedata if 'muscle' in self.args.alldesign else self._origindata, self.__evaluate_opt)
             except : self._base.errorlog('\n未进行引物设计/Cannot Find Designed Primer')
 
             #根据条件从区间中过滤出合适的保守区间和非保守区间(conser1)nonconser(conser2)

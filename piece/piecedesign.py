@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/09
+更改日期: 2022/11/22
 '''
 
 from .piecedefine import *
@@ -15,13 +15,13 @@ import subprocess, platform
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/10/27
+更改日期: 2022/11/22
 '''
 #多序列比对、保守区间遍历、PCR设计等
 class piecedesign() :
-    def __init__(self, pbase, todo_path, filepath, model='simple') -> None:
+    def __init__(self, pbase, todo_path, filepath, design_opt) -> None:
         self._todo_path = todo_path
-        self.model = model
+        self.__design_opt = design_opt
         self.__platform = platform.system()
 
         self.filepath = filepath
@@ -88,12 +88,46 @@ class piecedesign() :
 
     '''
     创建人员: Nerium
+    创建日期: 2022/11/22
+    更改人员: Nerium
+    更改日期: 2022/11/22
+    '''
+    #根据间隔的香农熵合并相近的保守区间
+    def merge_conser_area(self, shannons, posmem, seqdict) :
+        final_pos = [posmem[0]]
+        for idx in range(1, len(posmem)) :
+            #和前一个合并
+            non_conserl, non_conserr = posmem[idx-1][1]+1, posmem[idx][0]-1
+            part_shannons = shannons[non_conserl-1:non_conserr]
+
+            self._base.debuglog(BASE_DEBUG_LEVEL1, posmem[idx], ends=' | ')
+            self._base.debuglog(BASE_DEBUG_LEVEL1, sum(part_shannons), ends=' | ')
+
+            #如果间隔香农熵和<2，则看final合并
+            if sum(part_shannons) < 2 :
+                self._base.debuglog(BASE_DEBUG_LEVEL1, final_pos, ends= ' | ')
+                if final_pos[-1][1] == posmem[idx-1][1] : 
+                    self._base.debuglog(BASE_DEBUG_LEVEL1, len(self.detect_haplotype(seqdict, final_pos[-1][0], posmem[idx][1])), ends=' | ')
+                    #还要看合并后的haplotype，现行写死100
+                    if len(self.detect_haplotype(seqdict, final_pos[-1][0], posmem[idx][1])) < 100 : final_pos[-1][1] = posmem[idx][1]
+                else : final_pos.append(posmem[idx])
+            else : final_pos.append(posmem[idx])
+            self._base.debuglog(BASE_DEBUG_LEVEL1, '')
+
+        return final_pos
+
+    '''
+    创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/10/27
+    更改日期: 2022/11/22
     '''
     #通过香农熵挖掘所有保守区域
-    def detect_conser_area_shannon(self, shannons, seqdict, threshold=generate_shannon_bynum(0.95), minlen=15, pwindow=1) :
+    def detect_conser_area_shannon(self, shannons, seqdict, threshold=None, minlen=None, pwindow=1, merge=None) :
+        if threshold is None : threshold = self.__design_opt['threshold']
+        if minlen is None : minlen = self.__design_opt['minlen']
+        if merge is None : merge = self.__design_opt['merge']
+
         self._base.baselog('探测比对后序列的所有保守区域...')
         posl, posr, seqlen, posmem, mem, window = 1, 1, len(shannons), [], [1.0]*2, pwindow
 
@@ -110,6 +144,8 @@ class piecedesign() :
         for rang in posmem[::-1] :
             for ibp in range(max(0, rang[0]-1), rang[1]) :
                 if [seq[ibp] for seq in seqdict.values()].count('-')/seqcnt >= 0.1 : posmem.remove(rang); self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 空白符过多区间删除/{0} Deleted For Gaps'.format(rang)); break
+
+        if merge : posmem = self.merge_conser_area(shannons, posmem, seqdict)
 
         #没有足够的保守区间，程序直接退出
         if len(posmem) < 2 : self._base.errorlog('\n香农熵中断和延续法无法探测到足够的保守区域/ Shannon Terminate Or Continue Cannot Detect Enough Conservate Area')

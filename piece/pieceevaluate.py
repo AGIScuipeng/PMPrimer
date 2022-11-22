@@ -12,14 +12,15 @@ from .piecebase import split_all_from_str
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2022/10/21
+更改日期: 2022/11/22
 '''
 class pieceevaluate() :
-    def __init__(self, pbase, nonconser_sort, conser, primer_dict, seqdict) -> None:
+    def __init__(self, pbase, nonconser_sort, conser, primer_dict, seqdict, evaluate_opt) -> None:
         self._nonconser_sort = nonconser_sort
         self._conser = conser
         self._primer_dict = primer_dict
         self._seqdict = seqdict
+        self.__evaluate_opt = evaluate_opt
 
         self._base = pbase
 
@@ -27,11 +28,14 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/08
     更改人员: Nerium
-    更改日期: 2022/11/16
+    更改日期: 2022/11/22
     '''
     #根据条件从区间中过滤出合适的保守区间和非保守区间(conser1)nonconser(conser2)
     #nonconser_sort是根据多样性由高到低排序的，conser是根据位置排序的
-    def filter_area(self, minlen=80, hpcnt=10) :
+    def filter_area(self, minlen=None, hpcnt=None) :
+        if minlen is None : minlen = self.__evaluate_opt['minlen']
+        if hpcnt is None : hpcnt = self.__evaluate_opt['hpcnt']
+
         self._base.baselog('\n正在进行扩增子选定...')
         posmem = []
         for area in self._nonconser_sort :
