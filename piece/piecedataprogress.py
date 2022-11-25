@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/11/21
+更改日期: 2022/11/25
 '''
 
 from .piecedefine import *
@@ -119,7 +119,7 @@ class piecedataprogress() :
     创建人员: Nerium
     创建日期: 2022/11/10
     更改人员: Nerium
-    更改日期: 2022/11/10
+    更改日期: 2022/11/25
     '''
     #数据集基本信息
     def check_gnu_spe_sub_info(self) :
@@ -138,8 +138,8 @@ class piecedataprogress() :
         self._base.baselog('清洗后物种共 {} 个'.format(len(speset)))
         self._base.baselog('清洗后属共 {} 个'.format(len(gnuset)))
         self._base.debuglog(BASE_DEBUG_LEVEL1, gnuset)
-        self._base.debuglog(BASE_DEBUG_LEVEL2, speset)
-        self._base.debuglog(BASE_DEBUG_LEVEL2, subset)
+        self._base.debuglog(BASE_DEBUG_LEVEL3, speset)
+        self._base.debuglog(BASE_DEBUG_LEVEL3, subset)
 
     '''
     创建人员: Nerium
