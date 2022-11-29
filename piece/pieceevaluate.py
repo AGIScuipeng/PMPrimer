@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2022/11/16
+更改日期: 2022/11/28
 '''
 
 from .piecedefine import *
@@ -79,13 +79,14 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/12
     更改人员: Nerium
-    更改日期: 2022/10/21
+    更改日期: 2022/11/28
     '''
     #评估扩增子的分辨能力seq:set(species)
     def evaluate_resolution(self) :
         self._base.baselog('\n扩增子分辨力为/ Resolution Of Amplicon：')
         self._diversedict = {}
         reso, genuset, speset, subset = {}, set(), set(), set()
+        merge_spe_set, merge_sub_set = set(), set()
         for amp in self._posmem :
             diverse1, diverse2, resdict = amp[0][1], amp[1][0], dict()
             for idallstr, seq in self._seqdict.items() : 
@@ -103,11 +104,22 @@ class pieceevaluate() :
             #seq作为key，value只有一个种才计入分辨能力，亚种同理
             reso.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), ({list(v)[0].split('_')[0] for v in resdict.values() if len({s.split('_')[0] for s in list(v)}) == 1}, {'_'.join(list(v)[0].split('_')[:2]) for v in resdict.values() if len({'_'.join(s.split('_')[:2]) for s in list(v)}) == 1}, {list(v)[0] for v in resdict.values() if len(v) == 1}))
 
+            if self.__evaluate_opt['merge'] == False : continue
+            for v in resdict.values() :
+                if len({'_'.join(s.split('_')[:2]) for s in list(v)}) == 1 :
+                    merge_spe_set.add('_'.join(list(v)[0].split('_')[:2]))
+                if len(v) == 1 :
+                    merge_sub_set.add(list(v)[0])
+
         #在种和亚种的层次上都要统计分辨能力
         genuscnt, specnt, subcnt = len(genuset), len(speset), len(subset)
         self._base.debuglog(BASE_DEBUG_LEVEL1, '属数量：{0}；物种数量：{1}；亚种数量：{2}/ Genus Number: {0}; Species Number: {1}; Subspecies Number: {2}'.format(genuscnt, specnt, subcnt))
 
         self._base.baselog('\n'.join(['{} : 属 {}%; 种{:.2f}%; 亚种 {:.2f}%'.format(k, (len(v[0])/genuscnt)*100, (len(v[1])/specnt)*100, (len(v[2])/subcnt)*100) for k, v in reso.items()]))
         self._resolution = reso; self._statistic_cnt = (genuset, speset, subset)
+
+        if self.__evaluate_opt['merge'] :
+            self._base.baselog('合并后物种分辨力为/ Resolution Of Amplicon After Merged：{:.2f}%'.format(len(merge_spe_set)*100/len(speset)))
+            self._base.baselog('合并后亚种分辨力为/ Resolution Of Amplicon After Merged：{:.2f}%'.format(len(merge_sub_set)*100/len(subset)))
 
         return reso

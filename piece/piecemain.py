@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/22
+更改日期: 2022/11/28
 '''
 
 from .piecedefine import *
@@ -18,7 +18,7 @@ from collections import Counter
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/22
+更改日期: 2022/11/28
 '''
 #流程主类
 class piecemain() :
@@ -35,7 +35,7 @@ class piecemain() :
         '''
         扩增子设计相关参数配置
         '''
-        self.__design_opt = {'threshold' : generate_shannon_bynum(0.95), 'minlen' : 15, 'merge': False}
+        self.__design_opt = {'threshold' : generate_shannon_bynum(0.95), 'minlen' : 15, 'merge': False, 'pdetail': False}
         #遍历alldesign找到threshold:0.xx等参数
         for x in self.args.alldesign[::-1] :
             if 'threshold' in x : 
@@ -47,11 +47,12 @@ class piecemain() :
                 try : self.__design_opt['minlen'] = int(x.split(':')[-1])
                 except : self._base.warnlong('设计最小值参数解析错误/ All Design Minlen Patameter Parse Error')
         self.__design_opt['merge'] = True if 'merge' in self.args.alldesign else False
+        self.__design_opt['pdetail'] = True if 'pdetail' in self.args.alldesign else False
 
         '''
         扩增子评估相关参数配置
         '''
-        self.__evaluate_opt = {'minlen' : 80, 'hpcnt' : 10}
+        self.__evaluate_opt = {'minlen' : 80, 'hpcnt' : 10, 'merge': False}
         #遍历alldesign找到hpcnt:10等参数
         for x in self.args.evaluate[::-1] :
             if 'hpcnt' in x : 
@@ -62,6 +63,7 @@ class piecemain() :
             if 'minlen' in x : 
                 try : self.__evaluate_opt['minlen'] = int(x.split(':')[-1])
                 except : self._base.warnlong('扩增子最小值参数解析错误/ Amplicon Minlen Patameter Parse Error')
+        self.__evaluate_opt['merge'] = True if 'merge' in self.args.evaluate else False
 
         '''
         数据清洗相关参数配置
@@ -146,12 +148,13 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/11/16
+    更改日期: 2022/11/28
     '''
     #调用primer3-py进行引物设计
     #可以先将序列去重再进行引物设计，但是保存原始信息会比较麻烦，快速开发先走流程
     def primer_design(self, pcds, area) :
         primer_dict, areacnt = {}, len(area)
+        area_statistic = {'F': dict(), 'R': dict()}
         self._base.baselog('\n正在根据保守区间进行引物设计...', ends='')
         for numi, rang in enumerate(area, start=1) :
             self._base.baselog('\r正在根据保守区间进行引物设计... {}/{}'.format(numi, areacnt), ends='')
@@ -162,10 +165,10 @@ class piecemain() :
             #如果是一个-区间取消，则使用temp + (temp=None)break处理后添加到primer_dict中
 
             for spe, seq in data.items() :
-                if seq[rang[0]-1:rang[1]].count('-') : continue
+                tmp_seq = seq[rang[0]-1:rang[1]]
+                if tmp_seq.count('-') : continue
 
                 #简并符号不算
-                tmp_seq = seq[rang[0]-1:rang[1]]
                 if len(tmp_seq) - tmp_seq.count('A') - tmp_seq.count('T') - tmp_seq.count('C') - tmp_seq.count('G') - tmp_seq.count('-') : 
                     self._base.warnlog('{} 含有简并符号故跳过/ Skip Because Have Special BP'.format(spe)); continue
 
@@ -194,10 +197,21 @@ class piecemain() :
                     if pri in primer_dict[rang[0]][1] : primer_dict[rang[0]][1][pri].add(spe)
                     else : primer_dict[rang[0]][1].setdefault(pri, {spe})
 
+                if self.__design_opt['pdetail'] == False : continue
+                if pair_primer[2] is not None : 
+                    ppos = pair_primer[2][0] + seq[:rang[0]].count('-')
+                    ass = '[{},{}]'.format(ppos, ppos+pair_primer[2][1])
+                    area_statistic['F'].update({ass: area_statistic['F'].get(ass, 0)+1})
+                if pair_primer[3] is not None : 
+                    ppos = pair_primer[3][0] + seq[:rang[0]].count('-')
+                    ass = '[{},{}]'.format(ppos-pair_primer[3][1], ppos)
+                    area_statistic['R'].update({ass: area_statistic['R'].get(ass, 0)+1})
+
         self._base.successlog('\r\n已经根据保守区间完成引物设计')
-        [self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : {}, {}'.format(k,{kk:len(vv) for kk,vv in v[0].items()},{kk:len(vv) for kk,vv in v[1].items()})) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL2, '{} : None'.format(k)) for k, v in primer_dict.items()]
+        if self.__design_opt['pdetail'] : [self._base.baselog('{} : \nF{}\nR{}\n'.format(k,{kk:len(vv) for kk,vv in v[0].items()},{kk:len(vv) for kk,vv in v[1].items()})) if len(v[0])+len(v[1]) else self._base.baselog('{} : None'.format(k)) for k, v in primer_dict.items()]
         [self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : {}'.format(k,v)) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : None'.format(k)) for k, v in primer_dict.items()]
 
+        if self.__design_opt['pdetail'] : self._base.baselog(area_statistic)
         return primer_dict
 
     '''

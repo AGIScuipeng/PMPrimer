@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/22
+更改日期: 2022/11/28
 '''
 
 from .piecedefine import *
@@ -51,7 +51,7 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/10/14
+    更改日期: 2022/11/28
     '''
     #调用primer3-py设计引物
     def callprimer(self, target, opt=None, tops=99) :
@@ -66,7 +66,7 @@ class piecedesign() :
 
         #TOPS参数暂且无用，后续可能会有用，故暂时保留
         fcnt, rcnt = min(f_result['PRIMER_LEFT_NUM_RETURNED'], tops), min(r_result['PRIMER_RIGHT_NUM_RETURNED'], tops)
-        return ([f_result['PRIMER_LEFT_{}_SEQUENCE'.format(i)] for i in range(fcnt)], [r_result['PRIMER_RIGHT_{}_SEQUENCE'.format(i)] for i in range(rcnt)])
+        return ([f_result['PRIMER_LEFT_{}_SEQUENCE'.format(i)] for i in range(fcnt)], [r_result['PRIMER_RIGHT_{}_SEQUENCE'.format(i)] for i in range(rcnt)], f_result['PRIMER_LEFT_0'] if fcnt else None, r_result['PRIMER_RIGHT_0'] if rcnt else None)
 
     '''
     创建人员: Nerium
