@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/28
+更改日期: 2022/11/29
 '''
 
 from .piecedefine import *
@@ -18,7 +18,7 @@ from collections import Counter
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/28
+更改日期: 2022/11/29
 '''
 #流程主类
 class piecemain() :
@@ -148,7 +148,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/11/28
+    更改日期: 2022/11/29
     '''
     #调用primer3-py进行引物设计
     #可以先将序列去重再进行引物设计，但是保存原始信息会比较麻烦，快速开发先走流程
@@ -199,12 +199,12 @@ class piecemain() :
 
                 if self.__design_opt['pdetail'] == False : continue
                 if pair_primer[2] is not None : 
-                    ppos = pair_primer[2][0] + seq[:rang[0]].count('-')
-                    ass = '[{},{}]'.format(ppos, ppos+pair_primer[2][1])
+                    ppos = pair_primer[2][0] + seq[:rang[0]].count('-') + 1
+                    ass = '[{},{}]'.format(ppos, ppos+pair_primer[2][1]-1)
                     area_statistic['F'].update({ass: area_statistic['F'].get(ass, 0)+1})
                 if pair_primer[3] is not None : 
-                    ppos = pair_primer[3][0] + seq[:rang[0]].count('-')
-                    ass = '[{},{}]'.format(ppos-pair_primer[3][1], ppos)
+                    ppos = pair_primer[3][0] + seq[:rang[0]].count('-') + 1
+                    ass = '[{},{}]'.format(ppos-pair_primer[3][1]+1, ppos)
                     area_statistic['R'].update({ass: area_statistic['R'].get(ass, 0)+1})
 
         self._base.successlog('\r\n已经根据保守区间完成引物设计')
