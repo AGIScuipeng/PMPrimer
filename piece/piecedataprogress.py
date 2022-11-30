@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/11/25
+更改日期: 2022/11/30
 '''
 
 from .piecedefine import *
@@ -200,18 +200,21 @@ class piecedataprogress() :
     创建人员: Nerium
     创建日期: 2022/10/25
     更改人员: Nerium
-    更改日期: 2022/11/10
+    更改日期: 2022/11/30
     '''
     #先长度清洗，后去重，得到的是最后的结果
     def filt_data(self) : 
         ids_list = seq_after_filt_len(self._data) if self.__filt_opt.get('len', True) else list(self._data.keys())
         self._base.baselog('长度清洗后共 {0} 条 / Number After Keep Majority Length is {0}'.format(len(ids_list)))
+
         resdata = seq_keep1id_after_set(seq_set({id : self._data[id] for id in ids_list})) if self.__filt_opt.get('sameseq', True) else self._data
         self._base.baselog('同序列保留亚种后共 {0} 条 / Number After Keep Different Subspecies When Same Sequece is {0}'.format(len(resdata)))
 
         self._data = seq_remove_unclassfied(resdata)
         self._base.baselog('未分类序列清洗后共 {0} 条 / Number After Remove Unclassfied is {0}'.format(len(self._data)))
-        #self.calc_mismath_matrix()
+
+        if self.__filt_opt.get('matrix', False) : self.calc_mismath_matrix()
+
         self.check_gnu_spe_sub_info()
         return self._data
 

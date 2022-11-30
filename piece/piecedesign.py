@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/28
+更改日期: 2022/11/30
 '''
 
 from .piecedefine import *
@@ -120,7 +120,7 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/11/22
+    更改日期: 2022/11/30
     '''
     #通过香农熵挖掘所有保守区域
     def detect_conser_area_shannon(self, shannons, seqdict, threshold=None, minlen=None, pwindow=1, merge=None) :
@@ -143,7 +143,8 @@ class piecedesign() :
         #正序删除list会导致元素迁移从而删除错误，故倒序遍历
         for rang in posmem[::-1] :
             for ibp in range(max(0, rang[0]-1), rang[1]) :
-                if [seq[ibp] for seq in seqdict.values()].count('-')/seqcnt >= 0.1 : posmem.remove(rang); self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 空白符过多区间删除/{0} Deleted For Gaps'.format(rang)); break
+                tmp_rate = [seq[ibp] for seq in seqdict.values()].count('-')/seqcnt
+                if tmp_rate >= 0.1 : posmem.remove(rang); self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} {2}空白符占比 {1:.2f}% 区间删除/{0} Deleted For {2} Gaps Rate {1:.2f}%'.format(rang, tmp_rate*100, ibp+1)); break
 
         if merge : posmem = self.merge_conser_area(shannons, posmem, seqdict)
 

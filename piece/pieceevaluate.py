@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2022/11/29
+更改日期: 2022/11/30
 '''
 
 from .piecedefine import *
@@ -28,7 +28,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/08
     更改人员: Nerium
-    更改日期: 2022/11/22
+    更改日期: 2022/11/30
     '''
     #根据条件从区间中过滤出合适的保守区间和非保守区间(conser1)nonconser(conser2)
     #nonconser_sort是根据多样性由高到低排序的，conser是根据位置排序的
@@ -36,23 +36,59 @@ class pieceevaluate() :
         if minlen is None : minlen = self.__evaluate_opt['minlen']
         if hpcnt is None : hpcnt = self.__evaluate_opt['hpcnt']
 
-        self._base.baselog('\n正在进行扩增子选定...')
+        self._base.baselog('\n正在生成扩增子候选...')
         posmem = []
         for area in self._nonconser_sort :
-            if area[1]-area[0] < minlen : continue
+            #if area[1]-area[0] < minlen : continue
+            for idx, rang in enumerate(self._conser[1:], start=1) :
+                #判断保守区间是否包含住了当前非保守区间
+                if rang[0] > area[1] and self._conser[idx-1][1] < area[0] :
+                    #判断前保守区间的F引物和后保守区间的R引物的haplotype个数是否小于最大值
+                    if (len(self._primer_dict[self._conser[idx-1][0]][0].keys()) < hpcnt and len(self._primer_dict[rang[0]][1].keys()) < hpcnt) :
+                        #判断扩增子长度是否满足
+                        if rang[1]-self._conser[idx-1][0] < minlen : break
 
-            for idx, rang in enumerate(self._conser) :
-                #先判断保守区间是否包含住了当前非保守区间 以及 前保守区间的F引物和后保守区间的R引物的haplotype个数是否小于最大值
-                if rang[0] > area[1] and self._conser[idx-1][1] < area[0] and (len(self._primer_dict[self._conser[idx-1][0]][0].keys()) < hpcnt and len(self._primer_dict[rang[0]][1].keys()) < hpcnt) :
+                        #判断前保守区间的F引物和后保守区间的R引物是否存在（不存在的可能性较低）（可以和上面if合并，但是为了方便调试信息的输出，所以分开）
+                        if len(self._primer_dict.get(self._conser[idx-1][0], ({}, {}))[0]) and len(self._primer_dict.get(rang[0], ({}, {}))[1]) :
+                            posmem.append((self._conser[idx-1], self._conser[idx]))
+                        else : self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 或 {1} 没有引物/{0} Or {1} No Primer.'.format(rang, self._conser[idx-1]))
+                        break
+                    else :
+                        self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 或 {1} 多样性超过阈值/ {0} Or {1} Haplotype Overtake Threshold'.format(rang, self._conser[idx-1]))
+
+        self._base.successlog('扩增子候选生成完毕 共{}个'.format(len(posmem)))
+        self._base.debuglog(BASE_DEBUG_LEVEL1, posmem)
+        self._posmem = posmem
+        return posmem
+
+    '''
+    创建人员: Nerium
+    创建日期: 2022/11/30
+    更改人员: Nerium
+    更改日期: 2022/11/30
+    '''
+    #全排序获取合适的区间
+    def full_permutation(self, minlen=None, maxlen=None, hpcnt=None) :
+        if minlen is None : minlen = self.__evaluate_opt['minlen']
+        if maxlen is None : maxlen = self.__evaluate_opt['maxlen']
+        if hpcnt is None : hpcnt = self.__evaluate_opt['hpcnt']
+
+        self._base.baselog('\n正在生成扩增子候选...')
+        posmem = []
+        for idi, area in enumerate(self._conser) :
+            for idx, rang in enumerate(self._conser[idi+1:], start=idi+1) :
+                if not(minlen < rang[1] - area[0] < maxlen) : continue
+
+                #先判断前保守区间的F引物和后保守区间的R引物的haplotype个数是否小于最大值
+                if len(self._primer_dict[area[0]][0].keys()) < hpcnt and len(self._primer_dict[rang[0]][1].keys()) < hpcnt :
                     #再判断前保守区间的F引物和后保守区间的R引物是否存在（可以和上面if合并，但是为了方便调试信息的输出，所以分开）
-                    if len(self._primer_dict.get(self._conser[idx-1][0], ({}, {}))[0]) and len(self._primer_dict.get(rang[0], ({}, {}))[1]) :
-                        posmem.append((self._conser[idx-1], self._conser[idx]))
-                    else : self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 或 {1} 没有引物/{0} Or {1} No Primer.'.format(rang, self._conser[idx-1]))
-                    break
+                    if len(self._primer_dict.get(area[0], ({}, {}))[0]) and len(self._primer_dict.get(rang[0], ({}, {}))[1]) :
+                        posmem.append((self._conser[idi], self._conser[idx]))
+                    else : self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 或 {1} 没有引物/{0} Or {1} No Primer.'.format(rang, area))
                 else :
-                    self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 或 {1} 多样性超过阈值/ {0} Or {1} Haplotype Overtake Threshold'.format(rang, self._conser[idx-1]))
+                    self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 或 {1} 多样性超过阈值/ {0} Or {1} Haplotype Overtake Threshold'.format(rang, area))
 
-        self._base.successlog('已经完成扩增子选定 共{}个'.format(len(posmem)))
+        self._base.successlog('扩增子候选生成完毕 共{}个'.format(len(posmem)))
         self._base.debuglog(BASE_DEBUG_LEVEL1, posmem)
         self._posmem = posmem
         return posmem
@@ -61,9 +97,9 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/11
     更改人员: Nerium
-    更改日期: 2022/11/29
+    更改日期: 2022/11/30
     '''
-    #计算扩增子的覆盖度（目前是按属计算亚种的）
+    #计算扩增子的覆盖度（目前是F、R计算亚种并取交集）
     def evaluate_cover_rate(self) :
         self._base.baselog('\n扩增子覆盖度为/ Cover Rate Of Amplicon：')
         rates = {}
@@ -72,8 +108,9 @@ class pieceevaluate() :
             #print([(len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v if g in s}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v if g in s})) for g in self._statistic_cnt[0]])
             #rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), [min(len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v if g in s}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v if g in s})) / len([True for s in self._statistic_cnt[2] if g in s]) for g in self._statistic_cnt[0]])
 
-            self._base.debuglog(BASE_DEBUG_LEVEL1, (len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v})))
-            rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), min(len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v})))
+            self._base.debuglog(BASE_DEBUG_LEVEL1, ([amp[0][0], amp[1][1]], len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v})))
+            #rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), min(len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v})))
+            rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v} & {'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v}))
 
         self._base.baselog('\n'.join(['{} : 亚种{:.2f}%'.format(k, v*100/len(self._statistic_cnt[2])) for k, v in rates.items()]))
         self._cover_rates = rates

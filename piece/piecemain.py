@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/29
+更改日期: 2022/11/30
 '''
 
 from .piecedefine import *
@@ -18,7 +18,7 @@ from collections import Counter
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/29
+更改日期: 2022/11/30
 '''
 #流程主类
 class piecemain() :
@@ -52,26 +52,33 @@ class piecemain() :
         '''
         扩增子评估相关参数配置
         '''
-        self.__evaluate_opt = {'minlen' : 80, 'hpcnt' : 10, 'merge': False}
-        #遍历alldesign找到hpcnt:10等参数
+        self.__evaluate_opt = {'minlen' : 150, 'maxlen' : 1500, 'hpcnt' : 10, 'merge': False, 'fullp' : False}
+        #遍历evaluate找到hpcnt:10等参数
         for x in self.args.evaluate[::-1] :
             if 'hpcnt' in x : 
                 try : self.__evaluate_opt['hpcnt'] = int(x.split(':')[-1])
                 except : self._base.warnlong('引物特异参数解析错误/ Haplotype Number Patameter Parse Error')
-        #遍历alldesign找到minlen:15等参数
+        #遍历evaluate找到minlen:150等参数
         for x in self.args.evaluate[::-1] :
             if 'minlen' in x : 
                 try : self.__evaluate_opt['minlen'] = int(x.split(':')[-1])
                 except : self._base.warnlong('扩增子最小值参数解析错误/ Amplicon Minlen Patameter Parse Error')
+        #遍历evaluate找到maxlen:1500等参数
+        for x in self.args.evaluate[::-1] :
+            if 'maxlen' in x : 
+                try : self.__evaluate_opt['maxlen'] = int(x.split(':')[-1])
+                except : self._base.warnlong('扩增子最大值参数解析错误/ Amplicon Maxlen Patameter Parse Error')
         self.__evaluate_opt['merge'] = True if 'merge' in self.args.evaluate else False
+        self.__evaluate_opt['fullp'] = True if 'fullp' in self.args.evaluate else False
 
         '''
         数据清洗相关参数配置
         '''
         #默认数据清洗相关参数，以及遍历alldesign找到相关参数
-        self.__data_filt = {'len' : True, 'sameseq' : True}
+        self.__data_filt = {'len' : True, 'sameseq' : True, 'matrix' : False}
         if self.args.progress is not None and 'notlen' in self.args.progress : self.__data_filt.update({'len' : False})
         if self.args.progress is not None and 'notsameseq' in self.args.progress : self.__data_filt.update({'sameseq' : False})
+        if self.args.progress is not None and 'matrix' in self.args.progress : self.__data_filt.update({'matrix' : False})
 
         #基础模块的获取，log等功能都在其中
         self._base = pbase
@@ -282,8 +289,9 @@ class piecemain() :
             try : pcel = pieceevaluate(self._base, nonconser_sort, conser, self._primer_dict, self._comparedata if 'muscle' in self.args.alldesign else self._origindata, self.__evaluate_opt)
             except : self._base.errorlog('\n未进行引物设计/Cannot Find Designed Primer')
 
+            if self.__evaluate_opt['fullp'] : area_res = pcel.full_permutation()
             #根据条件从区间中过滤出合适的保守区间和非保守区间(conser1)nonconser(conser2)
-            area_res = pcel.filter_area()
+            else : area_res = pcel.filter_area()
 
             #评估扩增子分辨力
             reso = pcel.evaluate_resolution()
