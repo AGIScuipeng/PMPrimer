@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/30
+更改日期: 2022/12/07
 '''
 
 from .piecedefine import *
@@ -40,7 +40,7 @@ class piecedesign() :
         self._base.baselog('MUSCLE 多序列对比中...', ends='')
         #!!!因为MSUCLE输出很多，所以Popen()中的stdout=PIPE和wait()不能结合使用，因为操作系统的管道大小有上限
         #很久之前就解决过的问题，但是因为对MUSCLE不了解，再次出现
-        cm = subprocess.Popen('{}/{} --align {} --output {}'.format\
+        cm = subprocess.Popen('{}/{} --super5 {} --output {}'.format\
             (self._todo_path, PLATFORM_TODO[self.__platform], self.filepath, self.tmpfile_path),\
             shell=True, stderr=subprocess.PIPE)
         cm.communicate()
@@ -67,6 +67,40 @@ class piecedesign() :
         #TOPS参数暂且无用，后续可能会有用，故暂时保留
         fcnt, rcnt = min(f_result['PRIMER_LEFT_NUM_RETURNED'], tops), min(r_result['PRIMER_RIGHT_NUM_RETURNED'], tops)
         return ([f_result['PRIMER_LEFT_{}_SEQUENCE'.format(i)] for i in range(fcnt)], [r_result['PRIMER_RIGHT_{}_SEQUENCE'.format(i)] for i in range(rcnt)], f_result['PRIMER_LEFT_0'] if fcnt else None, r_result['PRIMER_RIGHT_0'] if rcnt else None)
+
+    '''
+    创建人员: Nerium
+    创建日期: 2022/12/07
+    更改人员: Nerium
+    更改日期: 2022/12/07
+    '''
+    #调用primer3-py设计引物
+    def callprimer_left(self, target, opt=None, tops=99) :
+        #分别设计F引物，R引物
+        opt['PRIMER_PICK_RIGHT_PRIMER']=0
+        f_result = bindings.designPrimers(target, opt)
+        if f_result['PRIMER_LEFT_NUM_RETURNED'] == 0 : self._base.debuglog(BASE_DEBUG_LEVEL3, f_result)
+
+        #TOPS参数暂且无用，后续可能会有用，故暂时保留
+        fcnt = min(f_result['PRIMER_LEFT_NUM_RETURNED'], tops)
+        return ([f_result['PRIMER_LEFT_{}_SEQUENCE'.format(i)] for i in range(fcnt)], f_result['PRIMER_LEFT_0'] if fcnt else None)
+
+    '''
+    创建人员: Nerium
+    创建日期: 2022/12/07
+    更改人员: Nerium
+    更改日期: 2022/12/07
+    '''
+    #调用primer3-py设计引物
+    def callprimer_right(self, target, opt=None, tops=99) :
+        #分别设计F引物，R引物
+        opt['PRIMER_PICK_LEFT_PRIMER']=0
+        r_result = bindings.designPrimers(target, opt)
+        if r_result['PRIMER_RIGHT_NUM_RETURNED'] == 0 : self._base.debuglog(BASE_DEBUG_LEVEL3, r_result)
+
+        #TOPS参数暂且无用，后续可能会有用，故暂时保留
+        rcnt = min(r_result['PRIMER_RIGHT_NUM_RETURNED'], tops)
+        return ([r_result['PRIMER_RIGHT_{}_SEQUENCE'.format(i)] for i in range(rcnt)], r_result['PRIMER_RIGHT_0'] if rcnt else None)
 
     '''
     创建人员: Nerium
@@ -144,7 +178,7 @@ class piecedesign() :
         for rang in posmem[::-1] :
             for ibp in range(max(0, rang[0]-1), rang[1]) :
                 tmp_rate = [seq[ibp] for seq in seqdict.values()].count('-')/seqcnt
-                if tmp_rate >= 0.1 : posmem.remove(rang); self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} {2}空白符占比 {1:.2f}% 区间删除/{0} Deleted For {2} Gaps Rate {1:.2f}%'.format(rang, tmp_rate*100, ibp+1)); break
+                if tmp_rate >= self.__design_opt['gaps'] : posmem.remove(rang); self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} {2}空白符占比 {1:.2f}% 区间删除/{0} Deleted For {2} Gaps Rate {1:.2f}%'.format(rang, tmp_rate*100, ibp+1)); break
 
         if merge : posmem = self.merge_conser_area(shannons, posmem, seqdict)
 
