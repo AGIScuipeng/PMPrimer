@@ -315,10 +315,7 @@ class piecemain() :
                     'PRIMER_PICK_RIGHT_PRIMER': 1,
                     'PRIMER_NUM_RETURN': 1,
                 }
-                try :
-                    p_right = pcds.callprimer_right(target=seq_args, opt=opt_args)
-                except Exception as e :
-                    print(e); print(tmp_ranger); self._base.errorlog('DOWN')
+                p_right = pcds.callprimer_right(target=seq_args, opt=opt_args)
 
                 pair_primer = (p_left[0], p_right[0], p_left[1], p_right[1])
                 rang = tmp_rang
