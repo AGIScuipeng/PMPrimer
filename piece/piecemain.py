@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/30
+更改日期: 2022/12/08
 '''
 
 from .piecedefine import *
@@ -346,9 +346,73 @@ class piecemain() :
 
     '''
     创建人员: Nerium
+    创建日期: 2022/12/08
+    更改人员: Nerium
+    更改日期: 2022/12/08
+    '''
+    #调用primer3-py进行引物设计
+    #通过第一次引物设计得到的区间直接从序列中提取
+    def primer_design_extract(self, pcds, area) :
+        primer_dict, areacnt = {}, len(area)
+        self._base.baselog('\n正在根据保守区间进行二次引物提取...', ends='')
+        for numi, rang in enumerate(area, start=1) :
+            self._base.baselog('\r正在根据保守区间进行二次引物提取... {}/{}'.format(numi, areacnt), ends='')
+
+            data = self._comparedata if 'muscle' in self.args.alldesign else self._origindata
+            #最后引物是dict中key:set()的形式，去重和保留原始样本名称信息
+            primer_dict.setdefault(rang[0], (dict(), dict()))
+
+            #根据一次设计的结果获取到二次设计的区间
+            tmp_rangef = sorted(self._area_statistic[rang[0]]['F'].items(), key=lambda z : z[1], reverse=True)[0][0].replace('[', '').replace(']', '').split(',')
+            tmp_ranger = sorted(self._area_statistic[rang[0]]['R'].items(), key=lambda z : z[1], reverse=True)[0][0].replace('[', '').replace(']', '').split(',')
+            tmp_rangef, tmp_ranger = [int(i) for i in tmp_rangef], [int(i) for i in tmp_ranger]
+            self._base.debuglog(BASE_DEBUG_LEVEL1, (tmp_rangef, tmp_ranger))
+
+            tmp_rang = rang
+            #如果是一个-区间取消，则使用temp + (temp=None)break处理后添加到primer_dict中
+            for spe, seq in data.items() :
+                #直接提取F引物
+                rang = tmp_rangef
+                tmp_seq = seq[rang[0]-1:rang[1]]
+                if tmp_seq.count('-') : continue
+
+                #简并符号不算
+                if len(tmp_seq) - tmp_seq.count('A') - tmp_seq.count('T') - tmp_seq.count('C') - tmp_seq.count('G') - tmp_seq.count('-') : 
+                    self._base.warnlog('\n{} 含有简并符号故跳过/ Skip Because Have Special BP'.format(spe)); continue
+                p_left = ([tmp_seq, ], None)
+
+                #直接提取R引物
+                rang = tmp_ranger
+                tmp_seq = seq[rang[0]-1:rang[1]]
+                if tmp_seq.count('-') : continue
+
+                #简并符号不算
+                if len(tmp_seq) - tmp_seq.count('A') - tmp_seq.count('T') - tmp_seq.count('C') - tmp_seq.count('G') - tmp_seq.count('-') : 
+                    self._base.warnlog('\n{} 含有简并符号故跳过/ Skip Because Have Special BP'.format(spe)); continue
+                p_right = ([''.join([DEFAULT_DNA_REFLECT_DICT.get(bp, '-') for bp in tmp_seq])[::-1], ], None)
+
+                pair_primer = (p_left[0], p_right[0], p_left[1], p_right[1])
+                rang = tmp_rang
+                #将原始样本名称对应，保留原始信息
+                for pri in pair_primer[0] :
+                    if pri in primer_dict[rang[0]][0] : primer_dict[rang[0]][0][pri].add(spe)
+                    else : primer_dict[rang[0]][0].setdefault(pri, {spe})
+                for pri in pair_primer[1] :
+                    if pri in primer_dict[rang[0]][1] : primer_dict[rang[0]][1][pri].add(spe)
+                    else : primer_dict[rang[0]][1].setdefault(pri, {spe})
+
+        self._base.successlog('\r\n已经根据保守区间完成二次引物提取')
+        if self.__design_opt['pdetail2'] : [self._base.baselog('{} : \nF{}\nR{}\n'.format(k,{kk:len(vv) for kk,vv in v[0].items()},{kk:len(vv) for kk,vv in v[1].items()})) if len(v[0])+len(v[1]) else self._base.baselog('{} : None'.format(k)) for k, v in primer_dict.items()]
+        [self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : {}'.format(k,v)) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : None'.format(k)) for k, v in primer_dict.items()]
+
+        if self.__design_opt['pdetail2'] : self._base.baselog(self._area_statistic)
+        return primer_dict, self._area_statistic
+
+    '''
+    创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/12/07
+    更改日期: 2022/12/08
     '''
     #主流程函数
     def maintrunk(self) :
@@ -408,7 +472,7 @@ class piecemain() :
                 self._primer_dict, self._area_statistic = self.primer_design(pcds, conser)
 
             if 'primer2' in self.args.alldesign :
-                self._primer_dict, self._area_statistic = self.primer_design_2(pcds, conser)
+                self._primer_dict, self._area_statistic = self.primer_design_extract(pcds, conser)
 
         #如果开启，则进行最终区域选择和评估等
         if self.args.evaluate is not None :
