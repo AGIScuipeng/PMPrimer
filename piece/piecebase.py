@@ -2,13 +2,40 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/18
+更改日期: 2022/12/09
 '''
 
 from .piecedefine import *
 
 from collections import Counter
+import primer3
 import math
+import json
+import time
+
+'''
+创建人员: Nerium
+创建日期: 2022/12/09
+更改人员: Nerium
+更改日期: 2022/12/09
+'''
+#写入JSON文件
+def write_json(fname, data) :
+    json.dump(data, open(fname, 'w'), indent=4, ensure_ascii=True)
+
+'''
+创建人员: Nerium
+创建日期: 2022/12/09
+更改人员: Nerium
+更改日期: 2022/12/09
+'''
+#根据序列，计算TM和同源二聚体
+def calc_tm_hairpin_homod(seq) :
+    tm = primer3.calcTm(seq)
+    hpin = primer3.calcHairpin(seq)
+    homod = primer3.calcHomodimer(seq)
+
+    return tm, False if hpin.tm < 25 else True, False if homod.tm < 25 else True
 
 '''
 创建人员: Nerium
@@ -160,12 +187,13 @@ def split_all_from_str(string) :
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/16
+更改日期: 2022/12/09
 '''
 #基础模块，log等功能都在其中
 class piecebase() :
     def __init__(self, level=BASE_DEBUG_LEVEL0) -> None:
         self._level = max(BASE_DEBUG_LEVEL0, min(BASE_DEBUG_LEVEL3, level))
+        self._time = str(int(time.time()))
 
     '''
     创建人员: Nerium

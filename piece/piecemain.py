@@ -2,11 +2,11 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/12/08
+更改日期: 2022/12/09
 '''
 
 from .piecedefine import *
-from .piecebase import calc_shannon_entropy, rank_lists_byfirst, generate_shannon_bynum
+from .piecebase import calc_shannon_entropy, rank_lists_byfirst, generate_shannon_bynum, calc_tm_hairpin_homod, write_json
 from .piecedesign import piecedesign
 from .pieceevaluate import pieceevaluate
 from .piecedataprogress import piecedataprogress
@@ -18,7 +18,7 @@ from collections import Counter
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/30
+更改日期: 2022/12/09
 '''
 #流程主类
 class piecemain() :
@@ -66,7 +66,7 @@ class piecemain() :
         '''
         扩增子评估相关参数配置
         '''
-        self.__evaluate_opt = {'minlen' : 150, 'maxlen' : 1500, 'hpcnt' : 10, 'merge': False, 'fullp' : False}
+        self.__evaluate_opt = {'minlen' : 150, 'maxlen' : 1500, 'hpcnt' : 10, 'merge': False, 'fullp' : False, 'save': False, 'tm' : 50.0, 'rmlow' : False}
         #遍历evaluate找到hpcnt:10等参数
         for x in self.args.evaluate[::-1] :
             if 'hpcnt' in x : 
@@ -84,6 +84,9 @@ class piecemain() :
                 except : self._base.warnlong('扩增子最大值参数解析错误/ Amplicon Maxlen Patameter Parse Error')
         self.__evaluate_opt['merge'] = True if 'merge' in self.args.evaluate else False
         self.__evaluate_opt['fullp'] = True if 'fullp' in self.args.evaluate else False
+        self.__evaluate_opt['save'] = True if 'save' in self.args.evaluate else False
+        self.__evaluate_opt['tm'] = self.__design_opt['tm']
+        self.__evaluate_opt['rmlow'] = True if 'rmlow' in self.args.evaluate else False
 
         '''
         数据清洗相关参数配置
@@ -169,7 +172,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/12/07
+    更改日期: 2022/12/09
     '''
     #调用primer3-py进行引物设计
     #可以先将序列去重再进行引物设计，但是保存原始信息会比较麻烦，快速开发先走流程
@@ -234,6 +237,7 @@ class piecemain() :
         [self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : {}'.format(k,v)) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : None'.format(k)) for k, v in primer_dict.items()]
 
         if self.__design_opt['pdetail'] : self._base.baselog(area_statistic)
+        if self.__evaluate_opt['save'] : write_json('{}_all_primer1.json'.format(self._base._time), {k:({kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk, vv in v[0].items()}, {kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk, vv in v[1].items()}) for k, v in primer_dict.items() if len(v[0])+len(v[1])})
         return primer_dict, area_statistic
 
     '''
@@ -348,7 +352,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/12/08
     更改人员: Nerium
-    更改日期: 2022/12/08
+    更改日期: 2022/12/09
     '''
     #调用primer3-py进行引物设计
     #通过第一次引物设计得到的区间直接从序列中提取
@@ -402,17 +406,17 @@ class piecemain() :
                     else : primer_dict[rang[0]][1].setdefault(pri, {spe})
 
         self._base.successlog('\r\n已经根据保守区间完成二次引物提取')
-        if self.__design_opt['pdetail2'] : [self._base.baselog('{} : \nF{}\nR{}\n'.format(k,{kk:len(vv) for kk,vv in v[0].items()},{kk:len(vv) for kk,vv in v[1].items()})) if len(v[0])+len(v[1]) else self._base.baselog('{} : None'.format(k)) for k, v in primer_dict.items()]
+        if self.__design_opt['pdetail2'] : [self._base.baselog('{} : \nF{}\nR{}\n'.format(k,{kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk,vv in v[0].items()},{kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk,vv in v[1].items()})) if len(v[0])+len(v[1]) else self._base.baselog('{} : None'.format(k)) for k, v in primer_dict.items()]
         [self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : {}'.format(k,v)) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : None'.format(k)) for k, v in primer_dict.items()]
 
-        if self.__design_opt['pdetail2'] : self._base.baselog(self._area_statistic)
+        if self.__evaluate_opt['save'] : write_json('{}_all_primer2.json'.format(self._base._time), {k:({kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk, vv in v[0].items()}, {kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk, vv in v[1].items()}) for k, v in primer_dict.items() if len(v[0])+len(v[1])})
         return primer_dict, self._area_statistic
 
     '''
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/12/08
+    更改日期: 2022/12/09
     '''
     #主流程函数
     def maintrunk(self) :
@@ -451,6 +455,8 @@ class piecemain() :
             nonconser = pcds.detect_non_conser_area(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon, conser)
             self._base.baselog('非保守区间列表 / List Of Non Conservative Area is : \n{0}'.format(nonconser))
 
+            if self.__evaluate_opt['save'] : write_json('{}_conser_nonconser.json'.format(self._base._time), {'conser' : conser, 'nonconser' : nonconser})
+
             #非保守区间多样性
             nonconser_sort = self.rank_by_diverse(pcds, nonconser, '非保守区间', 'rank1' in self.args.alldesign)
 
@@ -488,3 +494,5 @@ class piecemain() :
 
             #评估扩增子覆盖度
             cover_rate = pcel.evaluate_cover_rate()
+
+            if self.__evaluate_opt['save'] : write_json('{}_recommand_area_primer.json'.format(self._base._time), pcel.recommend_area_primer())

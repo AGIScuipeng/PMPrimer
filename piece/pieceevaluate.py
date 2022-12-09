@@ -2,11 +2,12 @@
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2022/11/30
+更改日期: 2022/12/09
 '''
 
 from .piecedefine import *
-from .piecebase import split_all_from_str
+from .piecebase import calc_tm_hairpin_homod, split_all_from_str
+import primer3
 
 '''
 创建人员: Nerium
@@ -97,7 +98,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/11
     更改人员: Nerium
-    更改日期: 2022/11/30
+    更改日期: 2022/12/09
     '''
     #计算扩增子的覆盖度（目前是F、R计算亚种并取交集）
     def evaluate_cover_rate(self) :
@@ -105,6 +106,14 @@ class pieceevaluate() :
         rates = {}
         for amp in self._posmem :
             spdf, spdr, seqcnt = self._primer_dict[amp[0][0]], self._primer_dict[amp[1][0]], len(self._seqdict.values())
+
+            if self.__evaluate_opt['rmlow'] :
+                #根据TM值来排除不符合条件的引物，如果是一次设计的话，不要此参数否则会有错误
+                for pri in list(spdf[0].keys()) :
+                    if primer3.calcTm(pri) < self.__evaluate_opt['tm'] : spdf[0].pop(pri)
+                for pri in list(spdr[1].keys()) :
+                    if primer3.calcTm(pri) < self.__evaluate_opt['tm'] : spdr[1].pop(pri)
+
             #print([(len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v if g in s}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v if g in s})) for g in self._statistic_cnt[0]])
             #rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), [min(len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v if g in s}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v if g in s})) / len([True for s in self._statistic_cnt[2] if g in s]) for g in self._statistic_cnt[0]])
 
@@ -164,3 +173,20 @@ class pieceevaluate() :
             self._base.baselog('合并后亚种分辨力为/ Resolution Of Amplicon After Merged：{:.2f}%'.format(len(merge_sub_set)*100/len(subset)))
 
         return reso
+
+    '''
+    创建人员: Nerium
+    创建日期: 2022/12/09
+    更改人员: Nerium
+    更改日期: 2022/12/09
+    '''
+    #待选扩增子的引物
+    def recommend_area_primer(self) :
+        tmp_data = {}
+        for amp in self._posmem :
+            spdf, spdr = self._primer_dict[amp[0][0]], self._primer_dict[amp[1][0]]
+            tmp_data.setdefault(str(amp), ({pri:calc_tm_hairpin_homod(pri) for pri in spdf[0].keys()}, {pri:calc_tm_hairpin_homod(pri) for pri in spdr[1].keys()}))
+
+        self._base.warnlog('请注意引物设计和引物评估模块的的熔解温度可能存在差异 / Please Attention TM Of Primer Design Module & Primer Evaluate Maybe Exist Diff')
+
+        return tmp_data
