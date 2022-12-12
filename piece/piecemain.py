@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/12/09
+更改日期: 2022/12/12
 '''
 
 from .piecedefine import *
@@ -11,14 +11,14 @@ from .piecedesign import piecedesign
 from .pieceevaluate import pieceevaluate
 from .piecedataprogress import piecedataprogress
 
-import os
 from collections import Counter
+import os
 
 '''
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/12/09
+更改日期: 2022/12/12
 '''
 #流程主类
 class piecemain() :
@@ -66,7 +66,8 @@ class piecemain() :
         '''
         扩增子评估相关参数配置
         '''
-        self.__evaluate_opt = {'minlen' : 150, 'maxlen' : 1500, 'hpcnt' : 10, 'merge': False, 'fullp' : False, 'save': False, 'tm' : 50.0, 'rmlow' : False}
+        self.__evaluate_opt = {'minlen' : 150, 'maxlen' : 1500, 'hpcnt' : 10, 'merge': False, 'fullp' : False, 'save': False, 'tm' : 50.0, \
+            'rmlow' : False, 'blast' : None}
         #遍历evaluate找到hpcnt:10等参数
         for x in self.args.evaluate[::-1] :
             if 'hpcnt' in x : 
@@ -82,6 +83,11 @@ class piecemain() :
             if 'maxlen' in x : 
                 try : self.__evaluate_opt['maxlen'] = int(x.split(':')[-1])
                 except : self._base.warnlong('扩增子最大值参数解析错误/ Amplicon Maxlen Patameter Parse Error')
+        #遍历evaluate找到blast:file1,filex等参数
+        for x in self.args.evaluate[::-1] :
+            if 'blast' in x : 
+                try : self.__evaluate_opt['blast'] = x.split(':')[-1].split(',')
+                except : self._base.warnlong('序列集合文件路径解析出错/ Blast File Parameter Parse Error')
         self.__evaluate_opt['merge'] = True if 'merge' in self.args.evaluate else False
         self.__evaluate_opt['fullp'] = True if 'fullp' in self.args.evaluate else False
         self.__evaluate_opt['save'] = True if 'save' in self.args.evaluate else False
@@ -496,3 +502,5 @@ class piecemain() :
             cover_rate = pcel.evaluate_cover_rate()
 
             if self.__evaluate_opt['save'] : write_json('{}_recommand_area_primer.json'.format(self._base._time), pcel.recommend_area_primer())
+
+            if self.__evaluate_opt['save'] and self.__evaluate_opt['blast'] : pcel.blast_db_search('{}_recommand_area_primer.json'.format(self._base._time))

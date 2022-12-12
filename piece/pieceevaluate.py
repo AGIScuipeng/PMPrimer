@@ -2,12 +2,27 @@
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2022/12/09
+更改日期: 2022/12/12
 '''
 
 from .piecedefine import *
 from .piecebase import calc_tm_hairpin_homod, split_all_from_str
-import primer3
+
+'''
+创建人员: Nerium
+创建日期: 2022/12/12
+更改人员: Nerium
+更改日期: 2022/12/12
+'''
+def json2fasta(data, fname) :
+    with open('{}_tmp.fasta'.format(fname), 'w') as ff:
+        for area, fr in data.items() :
+            for idx, lv in enumerate(fr) :
+                for idy, pri in enumerate(list(lv.keys())) :
+                    ff.write('>{}_{}_{}\n'.format(area, idx, idy))
+                    if idx ==0 :ff.write(pri+'\n')
+                    else : ff.write(''.join([DEFAULT_DNA_REFLECT_DICT.get(bp, '-') for bp in pri][::-1])+'\n')
+    return '{}_tmp.fasta'.format(fname)
 
 '''
 创建人员: Nerium
@@ -98,7 +113,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/11
     更改人员: Nerium
-    更改日期: 2022/12/09
+    更改日期: 2022/12/12
     '''
     #计算扩增子的覆盖度（目前是F、R计算亚种并取交集）
     def evaluate_cover_rate(self) :
@@ -108,6 +123,8 @@ class pieceevaluate() :
             spdf, spdr, seqcnt = self._primer_dict[amp[0][0]], self._primer_dict[amp[1][0]], len(self._seqdict.values())
 
             if self.__evaluate_opt['rmlow'] :
+                import primer3
+
                 #根据TM值来排除不符合条件的引物，如果是一次设计的话，不要此参数否则会有错误
                 for pri in list(spdf[0].keys()) :
                     if primer3.calcTm(pri) < self.__evaluate_opt['tm'] : spdf[0].pop(pri)
@@ -190,3 +207,50 @@ class pieceevaluate() :
         self._base.warnlog('请注意引物设计和引物评估模块的的熔解温度可能存在差异 / Please Attention TM Of Primer Design Module & Primer Evaluate Maybe Exist Diff')
 
         return tmp_data
+
+    '''
+    创建人员: Nerium
+    创建日期: 2022/12/12
+    更改人员: Nerium
+    更改日期: 2022/12/12
+    '''
+    def blast_db_search(self, jsonpath) :
+        from base64 import b64encode as bencode
+        import subprocess
+        import json
+        import os 
+
+        #将结果转换为fasta作为查询序列
+        data = json.load(open(jsonpath))
+        query_name = json2fasta(data, self._base._time)
+
+        #查看文件是否存在
+        for pathx in self.__evaluate_opt['blast'] : 
+            if os.path.exists(pathx) == False :
+                self._base.errorlog('建库序列集合文件不存在/ Blast Use File Not Exsits')
+
+        #文件名称算哈希作为新文件夹
+        final_path_name = bencode(''.join(self.__evaluate_opt['blast']).encode()).decode()
+        final_file_name = [bencode(f.encode()).decode() for f in self.__evaluate_opt['blast']]
+
+        #blast建库
+        self._base.baselog('\nBLAST建库中...')
+        if os.path.exists('{}'.format(final_path_name)) == False :
+            os.system('mkdir {0}'.format(final_path_name))
+
+            for idx, fx in enumerate(self.__evaluate_opt['blast']) :
+                cm = subprocess.Popen('makeblastdb -in {} -parse_seqids -dbtype nucl -out {}/{}'.format\
+                    (fx, final_path_name, final_file_name[idx]),\
+                    shell=True, stderr=subprocess.PIPE)
+                cm.communicate()
+        self._base.successlog('BLAST建库完毕')
+
+        #搜索相似序列
+        self._base.baselog('\nBLAST搜索中...')
+        #blastn -db blastdb/ncbi_myco_all -query jsontmp.fasta -out pri_res.xml -outfmt 5 -num_alignments 100000 -task blastn-short -word_size 15 -evalue 1
+        for idx, fx in enumerate(self.__evaluate_opt['blast']) :
+            cm = subprocess.Popen('blastn -db {}/{} -query {} -out {}_blast_res_{}.xml -outfmt 5 -num_alignments 100000 -task blastn-short -word_size 15 -evalue 1'.format\
+                (final_path_name, final_file_name[idx], query_name, self._base._time, idx),\
+                shell=True, stderr=subprocess.PIPE)
+            cm.communicate()
+        self._base.successlog('BLAST搜索完毕')
