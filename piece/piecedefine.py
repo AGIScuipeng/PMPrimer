@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/12/08
+更改日期: 2022/12/14
 '''
 
 #全局变量都在此声明
@@ -14,3 +14,6 @@ DEFAULT_DNA_REFLECT_DICT = {'A':'T', 'T':'A', 'C':'G', 'G':'C'}
 
 PLATFORM_WINDOWS, PLATFORM_LINUX = 'Windows', 'Linux'
 PLATFORM_TODO = {PLATFORM_WINDOWS: 'muscle5.1.win64.exe', PLATFORM_LINUX: 'muscle5.1.linux_intel64'}
+
+DATA2JSON_REFELCT = {0: 'F', 1 : 'R'}
+JSON2DATA_REFELCT = {'F': 0, 'R': 1}

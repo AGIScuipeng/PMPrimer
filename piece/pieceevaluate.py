@@ -6,20 +6,38 @@
 '''
 
 from .piecedefine import *
-from .piecebase import calc_tm_hairpin_homod, split_all_from_str
+from .piecebase import calc_tm_hairpin_homod, split_all_from_str, write_json
+
+'''
+创建人员: Nerium
+创建日期: 2022/12/14
+更改人员: Nerium
+更改日期: 2022/12/14
+'''
+def useret(fname) :
+    from Bio.Blast import NCBIXML
+
+    dup_dict = {}
+    for record in NCBIXML.parse(open(fname)) :
+        dup_dict.setdefault(record.query, {})
+        for align in record.alignments :
+            hsps_len = len(align.hsps)
+            if hsps_len in dup_dict[record.query] : dup_dict[record.query][hsps_len].add(align.title)
+            else : dup_dict[record.query].setdefault(hsps_len, {align.title, })
+    return dup_dict
 
 '''
 创建人员: Nerium
 创建日期: 2022/12/12
 更改人员: Nerium
-更改日期: 2022/12/12
+更改日期: 2022/12/14
 '''
 def json2fasta(data, fname) :
     with open('{}_tmp.fasta'.format(fname), 'w') as ff:
         for area, fr in data.items() :
             for idx, lv in enumerate(fr) :
                 for idy, pri in enumerate(list(lv.keys())) :
-                    ff.write('>{}_{}_{}\n'.format(area, idx, idy))
+                    ff.write('>{}_{}_{}_{}\n'.format(area, DATA2JSON_REFELCT[idx], idy, pri))
                     if idx ==0 :ff.write(pri+'\n')
                     else : ff.write(''.join([DEFAULT_DNA_REFLECT_DICT.get(bp, '-') for bp in pri][::-1])+'\n')
     return '{}_tmp.fasta'.format(fname)
@@ -195,17 +213,18 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/12/09
     更改人员: Nerium
-    更改日期: 2022/12/09
+    更改日期: 2022/12/14
     '''
     #待选扩增子的引物
     def recommend_area_primer(self) :
         tmp_data = {}
         for amp in self._posmem :
             spdf, spdr = self._primer_dict[amp[0][0]], self._primer_dict[amp[1][0]]
-            tmp_data.setdefault(str(amp), ({pri:calc_tm_hairpin_homod(pri) for pri in spdf[0].keys()}, {pri:calc_tm_hairpin_homod(pri) for pri in spdr[1].keys()}))
+            tmp_data.setdefault(str(amp), ({pri: (len(pset), calc_tm_hairpin_homod(pri)) for pri, pset in spdf[0].items()}, {pri: (len(pset), calc_tm_hairpin_homod(pri)) for pri, pset in spdr[1].items()}))
 
         self._base.warnlog('请注意引物设计和引物评估模块的的熔解温度可能存在差异 / Please Attention TM Of Primer Design Module & Primer Evaluate Maybe Exist Diff')
 
+        self._recommend = tmp_data
         return tmp_data
 
     '''
@@ -230,7 +249,7 @@ class pieceevaluate() :
                 self._base.errorlog('建库序列集合文件不存在/ Blast Use File Not Exsits')
 
         #文件名称算哈希作为新文件夹
-        final_path_name = bencode(''.join(self.__evaluate_opt['blast']).encode()).decode()
+        final_path_name = bencode(''.join(self.__evaluate_opt['blast']).encode()).decode()[:50]
         final_file_name = [bencode(f.encode()).decode() for f in self.__evaluate_opt['blast']]
 
         #blast建库
@@ -254,3 +273,24 @@ class pieceevaluate() :
                 shell=True, stderr=subprocess.PIPE)
             cm.communicate()
         self._base.successlog('BLAST搜索完毕')
+
+        #根据blast的结果统计分布并保存
+        analysis_rate = []
+        for idx in range(len(self.__evaluate_opt['blast'])) :
+            analysis_rate.append({})
+            for id, distri in useret('{}_blast_res_{}.xml'.format(self._base._time, idx)).items() :
+                all_cnt = sum([len(v) for v in distri.values()])
+                analysis_rate[idx].setdefault(id, {i[0]:i[1] for i in sorted({hl : len(aset)/all_cnt for hl, aset in distri.items()}.items())})
+        if self.__evaluate_opt['save'] : write_json('{}_blast_analysis.json'.format(self._base._time), analysis_rate)
+
+        #根据唯一命中的概率是否小于50%来删除不达标的引物
+        for idx in range(len(analysis_rate)) :
+            for id, statis in analysis_rate[idx].items() :
+                tmp = id.split('_')
+                del_flag = True if statis.get(1, 0) < 0.5 and len(statis.keys()) else False
+
+                if del_flag == False : continue
+                pri = tmp[-1] if tmp[1] == 'F' else ''.join([DEFAULT_DNA_REFLECT_DICT.get(bp, '-') for bp in tmp[-1]][::-1])
+                if pri in self._recommend[tmp[0]][JSON2DATA_REFELCT[tmp[1]]] : self._recommend[tmp[0]][JSON2DATA_REFELCT[tmp[1]]].pop(pri)
+
+        return self._recommend

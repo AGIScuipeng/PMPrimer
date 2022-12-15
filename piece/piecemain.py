@@ -503,4 +503,4 @@ class piecemain() :
 
             if self.__evaluate_opt['save'] : write_json('{}_recommand_area_primer.json'.format(self._base._time), pcel.recommend_area_primer())
 
-            if self.__evaluate_opt['save'] and self.__evaluate_opt['blast'] : pcel.blast_db_search('{}_recommand_area_primer.json'.format(self._base._time))
+            if self.__evaluate_opt['save'] and self.__evaluate_opt['blast'] : write_json('{}_final_recommand_area_primer.json'.format(self._base._time), pcel.blast_db_search('{}_recommand_area_primer.json'.format(self._base._time)))
