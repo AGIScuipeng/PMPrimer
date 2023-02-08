@@ -52,6 +52,7 @@ def seq_set(data) :
     seqset = dict()
     for id, seq in data.items() : 
         idsplit = split_all_from_str(id)
+        if idsplit is None : continue
         if ' '.join(idsplit[1:]) in [' '.join(split_all_from_str(x)[1:]) for x in seqset.get(seq, set())] : continue
         seqset.update({seq : seqset.get(seq, set()).union({id, })})
 
@@ -83,6 +84,7 @@ def seq_remove_unclassfied(seqset) :
     temp = {}
     for id, seq in seqset.items() :
         idsplit = split_all_from_str(id)
+        if idsplit is None : continue
         if idsplit[2] == 'sp.' or idsplit[1] == 'Uncultured' or 'UNVERIFIED' in idsplit[1] or idsplit[1].isalpha() is False : continue
 
         temp.update({id: seq})

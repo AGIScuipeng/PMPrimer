@@ -124,10 +124,12 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/11/22
     更改人员: Nerium
-    更改日期: 2022/11/22
+    更改日期: 2023/02/03
     '''
     #根据间隔的香农熵合并相近的保守区间
     def merge_conser_area(self, shannons, posmem, seqdict) :
+        if len(posmem) == 0 : return []
+
         final_pos = [posmem[0]]
         for idx in range(1, len(posmem)) :
             #和前一个合并
@@ -173,14 +175,18 @@ class piecedesign() :
                 posr += 1; posl = posr; mem = [1.0]*2
             window += 1; posl, posr, seqlen, mem = 1, 1, len(shannons), [1.0]*2
 
+        if merge : posmem = self.merge_conser_area(shannons, posmem, seqdict)
+
         seqcnt = len(seqdict)
         #正序删除list会导致元素迁移从而删除错误，故倒序遍历
         for rang in posmem[::-1] :
+            tcnt = 0
             for ibp in range(max(0, rang[0]-1), rang[1]) :
                 tmp_rate = [seq[ibp] for seq in seqdict.values()].count('-')/seqcnt
+                if tmp_rate >= 0.9 : tcnt += 1
                 if tmp_rate >= self.__design_opt['gaps'] : posmem.remove(rang); self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} {2}空白符占比 {1:.2f}% 区间删除/{0} Deleted For {2} Gaps Rate {1:.2f}%'.format(rang, tmp_rate*100, ibp+1)); break
+            if rang[1] - rang[0] + 1 - tcnt <= 15 : posmem.remove(rang)
 
-        if merge : posmem = self.merge_conser_area(shannons, posmem, seqdict)
 
         #没有足够的保守区间，程序直接退出
         if len(posmem) < 2 : self._base.errorlog('\n香农熵中断和延续法无法探测到足够的保守区域/ Shannon Terminate Or Continue Cannot Detect Enough Conservate Area')

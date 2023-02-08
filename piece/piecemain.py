@@ -101,7 +101,7 @@ class piecemain() :
         self.__data_filt = {'len' : True, 'sameseq' : True, 'matrix' : False}
         if self.args.progress is not None and 'notlen' in self.args.progress : self.__data_filt.update({'len' : False})
         if self.args.progress is not None and 'notsameseq' in self.args.progress : self.__data_filt.update({'sameseq' : False})
-        if self.args.progress is not None and 'matrix' in self.args.progress : self.__data_filt.update({'matrix' : False})
+        if self.args.progress is not None and 'matrix' in self.args.progress : self.__data_filt.update({'matrix' : True})
 
         #基础模块的获取，log等功能都在其中
         self._base = pbase
@@ -197,7 +197,8 @@ class piecemain() :
             #如果是一个-区间取消，则使用temp + (temp=None)break处理后添加到primer_dict中
             for spe, seq in data.items() :
                 tmp_seq = seq[rang[0]-1:rang[1]]
-                if tmp_seq.count('-') : continue
+                if len(tmp_seq.replace('-', '')) < 15 : continue
+                #if tmp_seq.count('-') : continue
 
                 #简并符号不算
                 if len(tmp_seq) - tmp_seq.count('A') - tmp_seq.count('T') - tmp_seq.count('C') - tmp_seq.count('G') - tmp_seq.count('-') : 
@@ -206,19 +207,21 @@ class piecemain() :
                 seq_args = {
                     'SEQUENCE_ID': '{}-{}'.format(rang[0], rang[1]),
                     'SEQUENCE_TEMPLATE': seq.replace('-', ''),
-                    'SEQUENCE_INCLUDED_REGION': [rang[0]-seq[:rang[0]].count('-')-1, rang[1]-rang[0]+1],
+                    'SEQUENCE_INCLUDED_REGION': [max(0, rang[0]-seq[:rang[0]].count('-')-1), rang[1]-rang[0]-seq[rang[0]:rang[1]].count('-')+1],
                 }
                 opt_args = {
                     'PRIMER_MIN_SIZE':15,
-                    'PRIMER_OPT_SIZE':((15+rang[1]-rang[0]+1)//2) if rang[1]-rang[0]+1<35 else 25,
-                    'PRIMER_MAX_SIZE':rang[1]-rang[0]+1 if rang[1]-rang[0]+1<35 else 35,
-                    'PRIMER_PRODUCT_SIZE_RANGE':[rang[1]-rang[0]+1, 100],
+                    'PRIMER_OPT_SIZE':((15+rang[1]-rang[0]-seq[rang[0]:rang[1]].count('-')+1)//2) if rang[1]-rang[0]-seq[rang[0]:rang[1]].count('-')+1<35 else 25,
+                    'PRIMER_MAX_SIZE':rang[1]-rang[0]-seq[rang[0]:rang[1]].count('-')+1 if rang[1]-rang[0]-seq[rang[0]:rang[1]].count('-')+1<35 else 35,
+                    'PRIMER_PRODUCT_SIZE_RANGE':[rang[1]-rang[0]-seq[rang[0]:rang[1]].count('-')+1, 100],
                     'PRIMER_MIN_TM': self.__design_opt['tm'],
                     'PRIMER_PICK_LEFT_PRIMER': 1,
                     'PRIMER_PICK_RIGHT_PRIMER': 1,
                     'PRIMER_NUM_RETURN': 1,
                 }
-                pair_primer = pcds.callprimer(target=seq_args, opt=opt_args)
+                #pair_primer = pcds.callprimer(target=seq_args, opt=opt_args)
+                try : pair_primer = pcds.callprimer(target=seq_args, opt=opt_args)
+                except : self._base.errorlog([max(0, rang[0]-seq[:rang[0]].count('-')-1), rang[1]-rang[0]-seq[rang[0]:rang[1]].count('-')+1])
 
                 #将原始样本名称对应，保留原始信息
                 for pri in pair_primer[0] :
@@ -503,4 +506,4 @@ class piecemain() :
 
             if self.__evaluate_opt['save'] : write_json('{}_recommand_area_primer.json'.format(self._base._time), pcel.recommend_area_primer())
 
-            if self.__evaluate_opt['save'] and self.__evaluate_opt['blast'] : write_json('{}_final_recommand_area_primer.json'.format(self._base._time), pcel.blast_db_search('{}_recommand_area_primer.json'.format(self._base._time)))
+            if self.__evaluate_opt['blast'] : write_json('{}_final_recommand_area_primer.json'.format(self._base._time), pcel.blast_db_search('{}_recommand_area_primer.json'.format(self._base._time)))

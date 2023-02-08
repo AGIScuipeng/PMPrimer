@@ -178,6 +178,8 @@ def mismatch_btw_2seq(seq1, seq2) :
 def split_all_from_str(string) :
     strsplit = string.split(' ')
 
+    if strsplit[1] == 'Unclassified' or len(strsplit) < 4 : return None
+
     if strsplit[3] == 'subsp.' or strsplit[3] == 'variant' :
         return strsplit[0], strsplit[1], strsplit[2], strsplit[4]
 

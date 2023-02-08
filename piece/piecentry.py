@@ -29,7 +29,7 @@ def entry() :
                             help='''基础数据清洗，参数有：\
                             \nnotlen 不根据长度分布清洗\
                             \nnotsameseq 不根据相同序列合并\
-                            \nmatrix 3 根据序列相似度画出聚类热图''')
+                            \nmatrix 根据序列相似度画出聚类热图''')
     paramparse.add_argument('--alldesign', '-a', nargs='+', default=['default'],
                             help='''多序列引物设计，参数有：\
                             \nthreshold 保守区间判定的阈值，默认为0.95，使用： threshold:0.95\
