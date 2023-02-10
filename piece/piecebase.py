@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/12/09
+更改日期: 2023/02/10
 '''
 
 from .piecedefine import *
@@ -41,14 +41,16 @@ def calc_tm_hairpin_homod(seq) :
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/09/08
+更改日期: 2023/02/10
 '''
 #通过流程主类中的原始、比对序列信息，根据id、比对序列坐标找到原始序列坐标
-def originpos(mainc, id, finalpos) :
-    x, y, originstr, finalstr = 0, 0, mainc._origindata[id], mainc._comparedata[id]
-    while y < finalpos :
-        if originstr[x] == finalstr[y] : x += 1; y += 1
-        else : y += 1
+#primer3的索引是从0开始的，返回的x是从1开始的
+def pos_translate(align_seq, ppos) :
+    origin_seq = align_seq.replace('-', '')
+    x, y = 0, 0
+    while y <= ppos :
+        if align_seq[x] == origin_seq[y] : x += 1; y += 1
+        else : x += 1
     return x
 
 '''
@@ -167,6 +169,30 @@ def mismatch_btw_2seq(seq1, seq2) :
 
     ret = [1 for i in range(len(seq1)) if seq1[i] != seq2[i]]
     return len(ret)
+
+'''
+创建人员: Nerium
+创建日期: 2023/02/10
+更改人员: Nerium
+更改日期: 2023/02/10
+'''
+#计算区间的占位符个数
+def calc_gaps_in_region(seq, ppos, llen, reverse=False) :
+    tlen, gaps = llen, 0
+    if reverse :
+        for bpi in seq[:ppos][::-1] :
+            if bpi != '-' : tlen -= 1
+            else : gaps += 1
+
+            if tlen == 0 : return gaps
+        return 0
+
+    for bpi in seq[ppos-1:] :
+        if bpi != '-' : tlen -= 1
+        else : gaps += 1
+
+        if tlen == 0 : return gaps
+    return 0
 
 '''
 创建人员: Nerium

@@ -2,11 +2,11 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/12/12
+更改日期: 2023/02/10
 '''
 
 from .piecedefine import *
-from .piecebase import calc_shannon_entropy, rank_lists_byfirst, generate_shannon_bynum, calc_tm_hairpin_homod, write_json
+from .piecebase import calc_shannon_entropy, rank_lists_byfirst, generate_shannon_bynum, calc_tm_hairpin_homod, write_json, pos_translate
 from .piecedesign import piecedesign
 from .pieceevaluate import pieceevaluate
 from .piecedataprogress import piecedataprogress
@@ -18,7 +18,7 @@ import os
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/12/12
+更改日期: 2023/02/10
 '''
 #流程主类
 class piecemain() :
@@ -178,7 +178,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/12/09
+    更改日期: 2023/02/10
     '''
     #调用primer3-py进行引物设计
     #可以先将序列去重再进行引物设计，但是保存原始信息会比较麻烦，快速开发先走流程
@@ -207,13 +207,13 @@ class piecemain() :
                 seq_args = {
                     'SEQUENCE_ID': '{}-{}'.format(rang[0], rang[1]),
                     'SEQUENCE_TEMPLATE': seq.replace('-', ''),
-                    'SEQUENCE_INCLUDED_REGION': [max(0, rang[0]-seq[:rang[0]].count('-')-1), rang[1]-rang[0]-seq[rang[0]:rang[1]].count('-')+1],
+                    'SEQUENCE_INCLUDED_REGION': [max(0, rang[0]-seq[:rang[0]-1].count('-')-1), rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1],
                 }
                 opt_args = {
                     'PRIMER_MIN_SIZE':15,
-                    'PRIMER_OPT_SIZE':((15+rang[1]-rang[0]-seq[rang[0]:rang[1]].count('-')+1)//2) if rang[1]-rang[0]-seq[rang[0]:rang[1]].count('-')+1<35 else 25,
-                    'PRIMER_MAX_SIZE':rang[1]-rang[0]-seq[rang[0]:rang[1]].count('-')+1 if rang[1]-rang[0]-seq[rang[0]:rang[1]].count('-')+1<35 else 35,
-                    'PRIMER_PRODUCT_SIZE_RANGE':[rang[1]-rang[0]-seq[rang[0]:rang[1]].count('-')+1, 100],
+                    'PRIMER_OPT_SIZE':((15+rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1)//2) if rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1<35 else 25,
+                    'PRIMER_MAX_SIZE':rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1 if rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1<35 else 35,
+                    'PRIMER_PRODUCT_SIZE_RANGE':[rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1, max(100, rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1)],
                     'PRIMER_MIN_TM': self.__design_opt['tm'],
                     'PRIMER_PICK_LEFT_PRIMER': 1,
                     'PRIMER_PICK_RIGHT_PRIMER': 1,
@@ -221,7 +221,7 @@ class piecemain() :
                 }
                 #pair_primer = pcds.callprimer(target=seq_args, opt=opt_args)
                 try : pair_primer = pcds.callprimer(target=seq_args, opt=opt_args)
-                except : self._base.errorlog([max(0, rang[0]-seq[:rang[0]].count('-')-1), rang[1]-rang[0]-seq[rang[0]:rang[1]].count('-')+1])
+                except : self._base.errorlog([max(0, rang[0]-seq[:rang[0]-1].count('-')-1), rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1])
 
                 #将原始样本名称对应，保留原始信息
                 for pri in pair_primer[0] :
@@ -233,12 +233,12 @@ class piecemain() :
 
                 if self.__design_opt['pdetail'] == False and self.__design_opt['primer2'] == False : continue
                 if pair_primer[2] is not None : 
-                    ppos = pair_primer[2][0] + seq[:rang[0]].count('-') + 1
-                    ass = '[{},{}]'.format(ppos, ppos+pair_primer[2][1]-1)
+                    ppos = pos_translate(seq, pair_primer[2][0])
+                    ass = '[{},{}]'.format(ppos, pos_translate(seq, pair_primer[2][0]+pair_primer[2][1]-1))
                     area_statistic[rang[0]]['F'].update({ass: area_statistic[rang[0]]['F'].get(ass, 0)+1})
                 if pair_primer[3] is not None : 
-                    ppos = pair_primer[3][0] + seq[:rang[0]].count('-') + 1
-                    ass = '[{},{}]'.format(ppos-pair_primer[3][1]+1, ppos)
+                    ppos = pos_translate(seq, pair_primer[3][0])
+                    ass = '[{},{}]'.format(pos_translate(seq, pair_primer[3][0]-pair_primer[3][1]+1), ppos)
                     area_statistic[rang[0]]['R'].update({ass: area_statistic[rang[0]]['R'].get(ass, 0)+1})
 
         self._base.successlog('\r\n已经根据保守区间完成引物设计')
@@ -361,7 +361,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/12/08
     更改人员: Nerium
-    更改日期: 2022/12/09
+    更改日期: 2023/02/10
     '''
     #调用primer3-py进行引物设计
     #通过第一次引物设计得到的区间直接从序列中提取
@@ -382,12 +382,13 @@ class piecemain() :
             self._base.debuglog(BASE_DEBUG_LEVEL1, (tmp_rangef, tmp_ranger))
 
             tmp_rang = rang
+            len_stat = {'F': {}, 'R': {}}
             #如果是一个-区间取消，则使用temp + (temp=None)break处理后添加到primer_dict中
             for spe, seq in data.items() :
                 #直接提取F引物
                 rang = tmp_rangef
-                tmp_seq = seq[rang[0]-1:rang[1]]
-                if tmp_seq.count('-') : continue
+                tmp_seq = seq[rang[0]-1:rang[1]].replace('-', '')
+                len_stat['F'].update({len(tmp_seq) : len_stat.get(tmp_seq, 0)+1})
 
                 #简并符号不算
                 if len(tmp_seq) - tmp_seq.count('A') - tmp_seq.count('T') - tmp_seq.count('C') - tmp_seq.count('G') - tmp_seq.count('-') : 
@@ -396,8 +397,8 @@ class piecemain() :
 
                 #直接提取R引物
                 rang = tmp_ranger
-                tmp_seq = seq[rang[0]-1:rang[1]]
-                if tmp_seq.count('-') : continue
+                tmp_seq = seq[rang[0]-1:rang[1]].replace('-', '')
+                len_stat['R'].update({len(tmp_seq) : len_stat.get(tmp_seq, 0)+1})
 
                 #简并符号不算
                 if len(tmp_seq) - tmp_seq.count('A') - tmp_seq.count('T') - tmp_seq.count('C') - tmp_seq.count('G') - tmp_seq.count('-') : 
@@ -414,6 +415,13 @@ class piecemain() :
                     if pri in primer_dict[rang[0]][1] : primer_dict[rang[0]][1][pri].add(spe)
                     else : primer_dict[rang[0]][1].setdefault(pri, {spe})
 
+            fplen = sorted(len_stat['F'].items(), key=lambda z:z[1], reverse=True)[0][0]
+            rplen = sorted(len_stat['R'].items(), key=lambda z:z[1], reverse=True)[0][0]
+            for pri in list(primer_dict[rang[0]][0].keys()) : 
+                if len(pri) > fplen : primer_dict[rang[0]][0].pop(pri)
+            for pri in list(primer_dict[rang[0]][1].keys()) : 
+                if len(pri) > rplen : primer_dict[rang[0]][1].pop(pri)
+
         self._base.successlog('\r\n已经根据保守区间完成二次引物提取')
         if self.__design_opt['pdetail2'] : [self._base.baselog('{} : \nF{}\nR{}\n'.format(k,{kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk,vv in v[0].items()},{kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk,vv in v[1].items()})) if len(v[0])+len(v[1]) else self._base.baselog('{} : None'.format(k)) for k, v in primer_dict.items()]
         [self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : {}'.format(k,v)) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : None'.format(k)) for k, v in primer_dict.items()]
@@ -425,7 +433,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/12/09
+    更改日期: 2023/02/10
     '''
     #主流程函数
     def maintrunk(self) :
@@ -497,6 +505,8 @@ class piecemain() :
             if self.__evaluate_opt['fullp'] : area_res = pcel.full_permutation()
             #根据条件从区间中过滤出合适的保守区间和非保守区间(conser1)nonconser(conser2)
             else : area_res = pcel.filter_area()
+
+            if len(pcel._posmem) == 0 : self._base.errorlog('没有合适的扩增子区间/ No Right Amplicon')
 
             #评估扩增子分辨力
             reso = pcel.evaluate_resolution()

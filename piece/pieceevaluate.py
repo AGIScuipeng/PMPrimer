@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2022/12/12
+更改日期: 2023/02/10
 '''
 
 from .piecedefine import *
@@ -99,7 +99,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/11/30
     更改人员: Nerium
-    更改日期: 2022/11/30
+    更改日期: 2023/02/10
     '''
     #全排序获取合适的区间
     def full_permutation(self, minlen=None, maxlen=None, hpcnt=None) :
@@ -120,7 +120,7 @@ class pieceevaluate() :
                         posmem.append((self._conser[idi], self._conser[idx]))
                     else : self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 或 {1} 没有引物/{0} Or {1} No Primer.'.format(rang, area))
                 else :
-                    self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 或 {1} 多样性超过阈值/ {0} Or {1} Haplotype Overtake Threshold'.format(rang, area))
+                    self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 或 {1} 多样性{2}、 {3}超过阈值/ {0} Or {1} Haplotype Is {2}, {3} Overtake Threshold'.format(rang, area, len(self._primer_dict[area[0]][0].keys()), len(self._primer_dict[rang[0]][1].keys())))
 
         self._base.successlog('扩增子候选生成完毕 共{}个'.format(len(posmem)))
         self._base.debuglog(BASE_DEBUG_LEVEL1, posmem)
@@ -131,7 +131,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/11
     更改人员: Nerium
-    更改日期: 2022/12/12
+    更改日期: 2023/02/10
     '''
     #计算扩增子的覆盖度（目前是F、R计算亚种并取交集）
     def evaluate_cover_rate(self) :
@@ -152,9 +152,9 @@ class pieceevaluate() :
             #print([(len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v if g in s}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v if g in s})) for g in self._statistic_cnt[0]])
             #rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), [min(len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v if g in s}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v if g in s})) / len([True for s in self._statistic_cnt[2] if g in s]) for g in self._statistic_cnt[0]])
 
-            self._base.debuglog(BASE_DEBUG_LEVEL1, ([amp[0][0], amp[1][1]], len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v})))
+            self._base.debuglog(BASE_DEBUG_LEVEL1, ([amp[0][0], amp[1][1]], len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v if split_all_from_str(s) is not None}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v if split_all_from_str(s) is not None})))
             #rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), min(len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v})))
-            rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v} & {'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v}))
+            rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v if split_all_from_str(s) is not None} & {'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v if split_all_from_str(s) is not None}))
 
         self._base.baselog('\n'.join(['{} : 亚种{:.2f}%'.format(k, v*100/len(self._statistic_cnt[2])) for k, v in rates.items()]))
         self._cover_rates = rates
@@ -164,7 +164,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/12
     更改人员: Nerium
-    更改日期: 2022/11/28
+    更改日期: 2023/02/10
     '''
     #评估扩增子的分辨能力seq:set(species)
     def evaluate_resolution(self) :
@@ -177,6 +177,7 @@ class pieceevaluate() :
             for idallstr, seq in self._seqdict.items() : 
                 #遍历过程中统计所有的种和亚种
                 idsplit = split_all_from_str(idallstr)
+                if idsplit is None : continue
                 genuset.add(idsplit[1]); speset.add('_'.join(idsplit[1:3])); subset.add('_'.join(idsplit[1:4]))
 
                 if seq[diverse1:diverse2] in resdict : resdict[seq[diverse1:diverse2]].add('_'.join(idsplit[1:]))
