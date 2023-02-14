@@ -388,7 +388,7 @@ class piecemain() :
                 #直接提取F引物
                 rang = tmp_rangef
                 tmp_seq = seq[rang[0]-1:rang[1]].replace('-', '')
-                len_stat['F'].update({len(tmp_seq) : len_stat.get(tmp_seq, 0)+1})
+                len_stat['F'].update({len(tmp_seq) : len_stat['F'].get(len(tmp_seq), 0)+1})
 
                 #简并符号不算
                 if len(tmp_seq) - tmp_seq.count('A') - tmp_seq.count('T') - tmp_seq.count('C') - tmp_seq.count('G') - tmp_seq.count('-') : 
@@ -398,7 +398,7 @@ class piecemain() :
                 #直接提取R引物
                 rang = tmp_ranger
                 tmp_seq = seq[rang[0]-1:rang[1]].replace('-', '')
-                len_stat['R'].update({len(tmp_seq) : len_stat.get(tmp_seq, 0)+1})
+                len_stat['R'].update({len(tmp_seq) : len_stat['F'].get(len(tmp_seq), 0)+1})
 
                 #简并符号不算
                 if len(tmp_seq) - tmp_seq.count('A') - tmp_seq.count('T') - tmp_seq.count('C') - tmp_seq.count('G') - tmp_seq.count('-') : 
@@ -418,9 +418,9 @@ class piecemain() :
             fplen = sorted(len_stat['F'].items(), key=lambda z:z[1], reverse=True)[0][0]
             rplen = sorted(len_stat['R'].items(), key=lambda z:z[1], reverse=True)[0][0]
             for pri in list(primer_dict[rang[0]][0].keys()) : 
-                if len(pri) > fplen : primer_dict[rang[0]][0].pop(pri)
+                if len(pri) != fplen or len(pri) < 15 : primer_dict[rang[0]][0].pop(pri)
             for pri in list(primer_dict[rang[0]][1].keys()) : 
-                if len(pri) > rplen : primer_dict[rang[0]][1].pop(pri)
+                if len(pri) != rplen or len(pri) < 15 : primer_dict[rang[0]][1].pop(pri)
 
         self._base.successlog('\r\n已经根据保守区间完成二次引物提取')
         if self.__design_opt['pdetail2'] : [self._base.baselog('{} : \nF{}\nR{}\n'.format(k,{kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk,vv in v[0].items()},{kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk,vv in v[1].items()})) if len(v[0])+len(v[1]) else self._base.baselog('{} : None'.format(k)) for k, v in primer_dict.items()]

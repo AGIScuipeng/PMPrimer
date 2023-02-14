@@ -164,7 +164,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/12
     更改人员: Nerium
-    更改日期: 2023/02/10
+    更改日期: 2023/02/13
     '''
     #评估扩增子的分辨能力seq:set(species)
     def evaluate_resolution(self) :
@@ -180,8 +180,9 @@ class pieceevaluate() :
                 if idsplit is None : continue
                 genuset.add(idsplit[1]); speset.add('_'.join(idsplit[1:3])); subset.add('_'.join(idsplit[1:4]))
 
-                if seq[diverse1:diverse2] in resdict : resdict[seq[diverse1:diverse2]].add('_'.join(idsplit[1:]))
-                else : resdict.setdefault(seq[diverse1:diverse2], {'_'.join(idsplit[1:]),})
+                tseq = seq[diverse1-1:diverse2].replace('-', '')
+                if tseq in resdict : resdict[tseq].add('_'.join(idsplit[1:]))
+                else : resdict.setdefault(tseq, {'_'.join(idsplit[1:]),})
 
             #请注意dict赋值存在直接指向、浅拷贝、深拷贝问题，如果后续resdict修改了，则此处需要改为深拷贝
             self._diversedict.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), resdict)
@@ -214,7 +215,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/12/09
     更改人员: Nerium
-    更改日期: 2022/12/14
+    更改日期: 2023/02/13
     '''
     #待选扩增子的引物
     def recommend_area_primer(self) :
@@ -222,6 +223,8 @@ class pieceevaluate() :
         for amp in self._posmem :
             spdf, spdr = self._primer_dict[amp[0][0]], self._primer_dict[amp[1][0]]
             tmp_data.setdefault(str(amp), ({pri: (len(pset), calc_tm_hairpin_homod(pri)) for pri, pset in spdf[0].items()}, {pri: (len(pset), calc_tm_hairpin_homod(pri)) for pri, pset in spdr[1].items()}))
+
+            #简并引物
 
         self._base.warnlog('请注意引物设计和引物评估模块的的熔解温度可能存在差异 / Please Attention TM Of Primer Design Module & Primer Evaluate Maybe Exist Diff')
 
