@@ -2,11 +2,11 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/02/10
+更改日期: 2023/02/15
 '''
 
 from .piecedefine import *
-from .piecebase import calc_shannon_entropy, rank_lists_byfirst, generate_shannon_bynum, calc_tm_hairpin_homod, write_json, pos_translate
+from .piecebase import calc_shannon_entropy, list_count, rank_lists_byfirst, generate_shannon_bynum, calc_tm_hairpin_homod, write_json, pos_translate
 from .piecedesign import piecedesign
 from .pieceevaluate import pieceevaluate
 from .piecedataprogress import piecedataprogress
@@ -18,7 +18,7 @@ import os
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/02/10
+更改日期: 2023/02/15
 '''
 #流程主类
 class piecemain() :
@@ -178,7 +178,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2023/02/10
+    更改日期: 2023/02/15
     '''
     #调用primer3-py进行引物设计
     #可以先将序列去重再进行引物设计，但是保存原始信息会比较麻烦，快速开发先走流程
@@ -201,7 +201,7 @@ class piecemain() :
                 #if tmp_seq.count('-') : continue
 
                 #简并符号不算
-                if len(tmp_seq) - tmp_seq.count('A') - tmp_seq.count('T') - tmp_seq.count('C') - tmp_seq.count('G') - tmp_seq.count('-') : 
+                if len(tmp_seq) - sum(list_count(tmp_seq, ['A','T','C','G','-']).values()) : 
                     self._base.warnlog('\n{} 含有简并符号故跳过/ Skip Because Have Special BP'.format(spe)); continue
 
                 seq_args = {
@@ -253,7 +253,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/12/07
     更改人员: Nerium
-    更改日期: 2022/12/07
+    更改日期: 2023/02/15
     '''
     #调用primer3-py进行引物设计
     #通过第一次引物设计得到的区间进行二次引物设计
@@ -284,7 +284,7 @@ class piecemain() :
                 if tmp_seq.count('-') : continue
 
                 #简并符号不算
-                if len(tmp_seq) - tmp_seq.count('A') - tmp_seq.count('T') - tmp_seq.count('C') - tmp_seq.count('G') - tmp_seq.count('-') : 
+                if len(tmp_seq) - sum(list_count(tmp_seq, ['A','T','C','G','-']).values()) : 
                     self._base.warnlog('\n{} 含有简并符号故跳过/ Skip Because Have Special BP'.format(spe)); continue
 
                 seq_args = {
@@ -310,7 +310,7 @@ class piecemain() :
                 if tmp_seq.count('-') : continue
 
                 #简并符号不算
-                if len(tmp_seq) - tmp_seq.count('A') - tmp_seq.count('T') - tmp_seq.count('C') - tmp_seq.count('G') - tmp_seq.count('-') : 
+                if len(tmp_seq) - sum(list_count(tmp_seq, ['A','T','C','G','-']).values()) : 
                     self._base.warnlog('\n{} 含有简并符号故跳过/ Skip Because Have Special BP'.format(spe)); continue
 
                 seq_args = {
@@ -361,7 +361,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/12/08
     更改人员: Nerium
-    更改日期: 2023/02/10
+    更改日期: 2023/02/15
     '''
     #调用primer3-py进行引物设计
     #通过第一次引物设计得到的区间直接从序列中提取
@@ -391,7 +391,7 @@ class piecemain() :
                 len_stat['F'].update({len(tmp_seq) : len_stat['F'].get(len(tmp_seq), 0)+1})
 
                 #简并符号不算
-                if len(tmp_seq) - tmp_seq.count('A') - tmp_seq.count('T') - tmp_seq.count('C') - tmp_seq.count('G') - tmp_seq.count('-') : 
+                if len(tmp_seq) - sum(list_count(tmp_seq, ['A','T','C','G','-']).values()) : 
                     self._base.warnlog('\n{} 含有简并符号故跳过/ Skip Because Have Special BP'.format(spe)); continue
                 p_left = ([tmp_seq, ], None)
 
@@ -401,7 +401,7 @@ class piecemain() :
                 len_stat['R'].update({len(tmp_seq) : len_stat['F'].get(len(tmp_seq), 0)+1})
 
                 #简并符号不算
-                if len(tmp_seq) - tmp_seq.count('A') - tmp_seq.count('T') - tmp_seq.count('C') - tmp_seq.count('G') - tmp_seq.count('-') : 
+                if len(tmp_seq) - sum(list_count(tmp_seq, ['A','T','C','G','-']).values()) : 
                     self._base.warnlog('\n{} 含有简并符号故跳过/ Skip Because Have Special BP'.format(spe)); continue
                 p_right = ([''.join([DEFAULT_DNA_REFLECT_DICT.get(bp, '-') for bp in tmp_seq])[::-1], ], None)
 

@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/02/10
+更改日期: 2023/02/15
 '''
 
 from .piecedefine import *
@@ -22,6 +22,17 @@ import time
 #写入JSON文件
 def write_json(fname, data) :
     json.dump(data, open(fname, 'w'), indent=4, ensure_ascii=True)
+
+'''
+创建人员: Nerium
+创建日期: 2023/02/15
+更改人员: Nerium
+更改日期: 2023/02/15
+'''
+#在字符串中统计list各项
+#使用此种方式最快，是O(len(seq)*len(l))，否则是O(len(seq)*(len(l)^2))
+def list_count(seq, l) :
+    return {i : seq.count(i) for i in l}
 
 '''
 创建人员: Nerium
