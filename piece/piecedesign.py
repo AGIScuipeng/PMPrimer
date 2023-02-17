@@ -124,7 +124,7 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/11/22
     更改人员: Nerium
-    更改日期: 2023/02/03
+    更改日期: 2023/02/17
     '''
     #根据间隔的香农熵合并相近的保守区间
     def merge_conser_area(self, shannons, posmem, seqdict) :
@@ -146,6 +146,7 @@ class piecedesign() :
                     self._base.debuglog(BASE_DEBUG_LEVEL1, len(self.detect_haplotype(seqdict, final_pos[-1][0], posmem[idx][1])), ends=' | ')
                     #还要看合并后的haplotype，现行写死100
                     if len(self.detect_haplotype(seqdict, final_pos[-1][0], posmem[idx][1])) < 100 : final_pos[-1][1] = posmem[idx][1]
+                    else : final_pos.append(posmem[idx])
                 else : final_pos.append(posmem[idx])
             else : final_pos.append(posmem[idx])
             self._base.debuglog(BASE_DEBUG_LEVEL1, '')
@@ -156,7 +157,7 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/11/30
+    更改日期: 2023/02/17
     '''
     #通过香农熵挖掘所有保守区域
     def detect_conser_area_shannon(self, shannons, seqdict, threshold=None, minlen=None, pwindow=1, merge=None) :
@@ -185,25 +186,27 @@ class piecedesign() :
                 tmp_rate = [seq[ibp] for seq in seqdict.values()].count('-')/seqcnt
                 if tmp_rate >= 0.9 : tcnt += 1
                 if tmp_rate >= self.__design_opt['gaps'] : posmem.remove(rang); self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} {2}空白符占比 {1:.2f}% 区间删除/{0} Deleted For {2} Gaps Rate {1:.2f}%'.format(rang, tmp_rate*100, ibp+1)); break
-            if rang[1] - rang[0] + 1 - tcnt <= 15 : posmem.remove(rang)
+            if rang[1] - rang[0] + 1 - tcnt < 15 : posmem.remove(rang); self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 有效长度不足15/ Area {0} Truly Length Less Than 15 bp'.format(rang))
 
 
         #没有足够的保守区间，程序直接退出
         if len(posmem) < 2 : self._base.errorlog('\n香农熵中断和延续法无法探测到足够的保守区域/ Shannon Terminate Or Continue Cannot Detect Enough Conservate Area')
         self._base.successlog('\r比对后序列的所有保守区域探测完毕')
+        #[[108,128], [216,235], [391,411], [504,525], [755,774], [892,909]]
+        #[[148,168], [569,589]]
         return posmem
 
     '''
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/09/10
+    更改日期: 2023/02/17
     '''
     #挖掘所有非保守区域
     def detect_non_conser_area(self, shannons, posmem, minlen=1) :
         posmem_len, seqlen = len(posmem), len(shannons)
         ret = [[rang[1]+1, posmem[idx+1][0]-1] for idx, rang in enumerate(posmem) if idx != posmem_len-1 and posmem[idx+1][0] - rang[1] > minlen]
-        if posmem[-1][-1] != seqlen : ret.append([posmem[-1][-1]+1, seqlen])
+        #if posmem[-1][-1] != seqlen : ret.append([posmem[-1][-1]+1, seqlen])
         return ret
 
     '''

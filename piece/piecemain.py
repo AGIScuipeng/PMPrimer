@@ -361,7 +361,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/12/08
     更改人员: Nerium
-    更改日期: 2023/02/15
+    更改日期: 2023/02/17
     '''
     #调用primer3-py进行引物设计
     #通过第一次引物设计得到的区间直接从序列中提取
@@ -376,6 +376,8 @@ class piecemain() :
             primer_dict.setdefault(rang[0], (dict(), dict()))
 
             #根据一次设计的结果获取到二次设计的区间
+            if len(self._area_statistic[rang[0]]['F']) == 0 or len(self._area_statistic[rang[0]]['R']) == 0 :
+                self._base.warnlog('区间{0}无引物/ Area {0} No Primer'.format(rang)); continue
             tmp_rangef = sorted(self._area_statistic[rang[0]]['F'].items(), key=lambda z : z[1], reverse=True)[0][0].replace('[', '').replace(']', '').split(',')
             tmp_ranger = sorted(self._area_statistic[rang[0]]['R'].items(), key=lambda z : z[1], reverse=True)[0][0].replace('[', '').replace(']', '').split(',')
             tmp_rangef, tmp_ranger = [int(i) for i in tmp_rangef], [int(i) for i in tmp_ranger]
