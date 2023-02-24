@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2023/02/10
+更改日期: 2023/02/24
 '''
 
 from .piecedefine import *
@@ -46,7 +46,7 @@ def json2fasta(data, fname) :
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2022/11/29
+更改日期: 2023/02/24
 '''
 class pieceevaluate() :
     def __init__(self, pbase, nonconser_sort, conser, primer_dict, seqdict, evaluate_opt) -> None:
@@ -55,8 +55,24 @@ class pieceevaluate() :
         self._primer_dict = primer_dict
         self._seqdict = seqdict
         self.__evaluate_opt = evaluate_opt
+        self._effective_len = {}
 
         self._base = pbase
+
+    '''
+    创建人员: Nerium
+    创建日期: 2023/02/24
+    更改人员: Nerium
+    更改日期: 2023/02/24
+    '''
+    #根据左右区间，算出平均有效长度，并保存待后使用
+    def calc_aver_effec_len(self, posl, posr) :
+        seq_len_list = []
+        for seq in self._seqdict.values() :
+            tseq = seq[posl-1:posr].replace('-', '')
+            seq_len_list.append(len(tseq))
+        self._effective_len['[{},{}]'.format(posl, posr)] = sum(seq_len_list)//len(seq_len_list)
+        return self._effective_len['[{},{}]'.format(posl, posr)]
 
     '''
     创建人员: Nerium
@@ -99,7 +115,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/11/30
     更改人员: Nerium
-    更改日期: 2023/02/10
+    更改日期: 2023/02/24
     '''
     #全排序获取合适的区间
     def full_permutation(self, minlen=None, maxlen=None, hpcnt=None) :
@@ -111,7 +127,7 @@ class pieceevaluate() :
         posmem = []
         for idi, area in enumerate(self._conser) :
             for idx, rang in enumerate(self._conser[idi+1:], start=idi+1) :
-                if not(minlen < rang[1] - area[0] < maxlen) : continue
+                if not(minlen < self.calc_aver_effec_len(area[0], rang[1]) < maxlen) : continue
 
                 #先判断前保守区间的F引物和后保守区间的R引物的haplotype个数是否小于最大值
                 if len(self._primer_dict[area[0]][0].keys()) < hpcnt and len(self._primer_dict[rang[0]][1].keys()) < hpcnt :
@@ -131,7 +147,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/11
     更改人员: Nerium
-    更改日期: 2023/02/10
+    更改日期: 2023/02/23
     '''
     #计算扩增子的覆盖度（目前是F、R计算亚种并取交集）
     def evaluate_cover_rate(self) :
@@ -156,7 +172,7 @@ class pieceevaluate() :
             #rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), min(len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v})))
             rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v if split_all_from_str(s) is not None} & {'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v if split_all_from_str(s) is not None}))
 
-        self._base.baselog('\n'.join(['{} : 亚种{:.2f}%'.format(k, v*100/len(self._statistic_cnt[2])) for k, v in rates.items()]))
+        self._base.baselog('\n'.join(['{}, 有效长度 {} bp : 亚种{:.2f}%'.format(k, self._effective_len[k], v*100/len(self._statistic_cnt[2])) for k, v in rates.items()]))
         self._cover_rates = rates
         return rates
 
@@ -164,7 +180,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/12
     更改人员: Nerium
-    更改日期: 2023/02/13
+    更改日期: 2023/02/23
     '''
     #评估扩增子的分辨能力seq:set(species)
     def evaluate_resolution(self) :
@@ -202,7 +218,7 @@ class pieceevaluate() :
         genuscnt, specnt, subcnt = len(genuset), len(speset), len(subset)
         self._base.debuglog(BASE_DEBUG_LEVEL1, '属数量：{0}；物种数量：{1}；亚种数量：{2}/ Genus Number: {0}; Species Number: {1}; Subspecies Number: {2}'.format(genuscnt, specnt, subcnt))
 
-        self._base.baselog('\n'.join(['{} : 属 {}%; 种{:.2f}%; 亚种 {:.2f}%'.format(k, (len(v[0])/genuscnt)*100, (len(v[1])/specnt)*100, (len(v[2])/subcnt)*100) for k, v in reso.items()]))
+        self._base.baselog('\n'.join(['{}, 有效长度 {} bp : 属 {}%; 种{:.2f}%; 亚种 {:.2f}%'.format(k, self._effective_len[k], (len(v[0])/genuscnt)*100, (len(v[1])/specnt)*100, (len(v[2])/subcnt)*100) for k, v in reso.items()]))
         self._resolution = reso; self._statistic_cnt = (genuset, speset, subset)
 
         if self.__evaluate_opt['merge'] :
