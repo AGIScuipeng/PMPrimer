@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/11/30
+更改日期: 2023/02/27
 '''
 
 from .piecedefine import *
@@ -45,17 +45,25 @@ def seq_after_filt_len(data) :
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/10/27
+更改日期: 2023/02/27
 '''
 #序列集去重data = {id: seq}; seqset = {seq : {id1, id2, ...}}（id1和id2保证了seq相同的情况下亚种层次的不同）
-def seq_set(data) : 
-    seqset = dict()
+#same_cnt用以后续简并引物作为原始序列排序的记录
+def seq_set(data, flag=False) : 
+    seqset, same_cnt = dict(), dict()
     for id, seq in data.items() : 
         idsplit = split_all_from_str(id)
         if idsplit is None : continue
-        if ' '.join(idsplit[1:]) in [' '.join(split_all_from_str(x)[1:]) for x in seqset.get(seq, set())] : continue
+
+        spe_id_dict = {' '.join(split_all_from_str(x)[1:]) : split_all_from_str(x)[0] for x in seqset.get(seq, set())}
+        t_spe = ' '.join(idsplit[1:])
+        #如果当前三级结构已经在seqset里面了，则使用seqset中记录的那个三级结构的唯一id作为key来保存同样的三级和序列一共重复了多少次
+        if t_spe in spe_id_dict :
+            same_cnt.update({spe_id_dict[t_spe] : same_cnt.get(spe_id_dict[t_spe], 0)+1})
+            continue
         seqset.update({seq : seqset.get(seq, set()).union({id, })})
 
+    if flag : return seqset, same_cnt
     return seqset
 
 '''
@@ -95,7 +103,7 @@ def seq_remove_unclassfied(seqset) :
 创建人员: Nerium
 创建日期: 2022/10/25
 更改人员: Nerium
-更改日期: 2022/11/10
+更改日期: 2023/02/27
 '''
 #数据清洗功能类
 class piecedataprogress() :
@@ -202,14 +210,17 @@ class piecedataprogress() :
     创建人员: Nerium
     创建日期: 2022/10/25
     更改人员: Nerium
-    更改日期: 2022/11/30
+    更改日期: 2023/02/27
     '''
     #先长度清洗，后去重，得到的是最后的结果
     def filt_data(self) : 
         ids_list = seq_after_filt_len(self._data) if self.__filt_opt.get('len', True) else list(self._data.keys())
         self._base.baselog('长度清洗后共 {0} 条 / Number After Keep Majority Length is {0}'.format(len(ids_list)))
 
-        resdata = seq_keep1id_after_set(seq_set({id : self._data[id] for id in ids_list})) if self.__filt_opt.get('sameseq', True) else self._data
+        if self.__filt_opt.get('sameseq', True) :
+            seqset, self._same_cnt = seq_set({id : self._data[id] for id in ids_list}, flag=True)
+            resdata = seq_keep1id_after_set(seqset)
+        else : resdata = {id : self._data[id] for id in ids_list}
         self._base.baselog('同序列保留亚种后共 {0} 条 / Number After Keep Different Subspecies When Same Sequece is {0}'.format(len(resdata)))
 
         self._data = seq_remove_unclassfied(resdata)
@@ -224,11 +235,11 @@ class piecedataprogress() :
     创建人员: Nerium
     创建日期: 2022/10/25
     更改人员: Nerium
-    更改日期: 2022/10/25
+    更改日期: 2023/02/27
     '''
     #清洗完成的数据，写入文件中
     def write_in_file(self, file_path) : 
-        self._base.baselog('清洗完成后序列共 {0} 条 / Number After Progress is {0}'.format(len(self._data)))
+        self._base.successlog('清洗完成后序列共 {0} 条 / Number After Progress is {0}'.format(len(self._data)))
         with open(file_path, 'w') as tf :
             for id, seq in self._data.items() :
                 tf.write('>' + id)

@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/12/15
+更改日期: 2023/02/27
 '''
 
 from .__auxiliary__ import __version__
@@ -18,7 +18,7 @@ import sys
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/12/15
+更改日期: 2023/02/27
 '''
 #封装包程序的入口
 def entry() :
@@ -30,7 +30,7 @@ def entry() :
                             \nnotlen 不根据长度分布清洗\
                             \nnotsameseq 不根据相同序列合并\
                             \nmatrix 根据序列相似度画出聚类热图''')
-    paramparse.add_argument('--alldesign', '-a', nargs='+', default=['default'],
+    paramparse.add_argument('--alldesign', '-a', nargs='+',
                             help='''多序列引物设计，参数有：\
                             \nthreshold 保守区间判定的阈值，默认为0.95，使用： threshold:0.95\
                             \nminlen 保守区间连续长度最小值，默认为15bp，使用： minlen:15\

@@ -54,7 +54,6 @@ def calc_tm_hairpin_homod(seq) :
 更改人员: Nerium
 更改日期: 2023/02/10
 '''
-#通过流程主类中的原始、比对序列信息，根据id、比对序列坐标找到原始序列坐标
 #primer3的索引是从0开始的，返回的x是从1开始的
 def pos_translate(align_seq, ppos) :
     origin_seq = align_seq.replace('-', '')

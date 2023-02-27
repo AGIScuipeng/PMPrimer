@@ -18,7 +18,7 @@ import os
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/02/15
+更改日期: 2023/02/27
 '''
 #流程主类
 class piecemain() :
@@ -36,32 +36,38 @@ class piecemain() :
         扩增子设计相关参数配置
         '''
         self.__design_opt = {'threshold' : generate_shannon_bynum(0.95), 'minlen' : 15, 'merge': False, 'pdetail': False, 'pdetail2' : False,\
-             'primer' : False, 'primer2' : False, 'gaps' : 0.1, 'tm' : 50.0}
-        #遍历alldesign找到threshold:0.xx等参数
-        for x in self.args.alldesign[::-1] :
-            if 'threshold' in x : 
-                try : self.__design_opt['threshold'] = generate_shannon_bynum(float(x.split(':')[-1]))
-                except : self._base.warnlong('阈值参数解析错误/ Threshold Patameter Parse Error')
-        #遍历alldesign找到minlen:15等参数
-        for x in self.args.alldesign[::-1] :
-            if 'minlen' in x : 
-                try : self.__design_opt['minlen'] = int(x.split(':')[-1])
-                except : self._base.warnlong('设计最小值参数解析错误/ All Design Minlen Patameter Parse Error')
-        #遍历alldesign找到gaps:0.1等参数
-        for x in self.args.alldesign[::-1] :
-            if 'gaps' in x : 
-                try : self.__design_opt['gaps'] = float(x.split(':')[-1])
-                except : self._base.warnlong('空白符占比参数解析错误/ Gaps Rate Patameter Parse Error')
-        #遍历alldesign找到tm:50等参数
-        for x in self.args.alldesign[::-1] :
-            if 'tm' in x : 
-                try : self.__design_opt['tm'] = float(x.split(':')[-1])
-                except : self._base.warnlong('熔解温度参数解析错误/ DNA Primer TM Patameter Parse Error')
-        self.__design_opt['merge'] = True if 'merge' in self.args.alldesign else False
-        self.__design_opt['pdetail'] = True if 'pdetail' in self.args.alldesign else False
-        self.__design_opt['pdetail2'] = True if 'pdetail2' in self.args.alldesign else False
-        self.__design_opt['primer'] = True if 'primer' in self.args.alldesign else False
-        self.__design_opt['primer2'] = True if 'primer2' in self.args.alldesign else False
+             'primer' : False, 'primer2' : False, 'gaps' : 0.1, 'tm' : 50.0, 'window' : 1}
+        if self.args.alldesign is not None :
+            #遍历alldesign找到threshold:0.xx等参数
+            for x in self.args.alldesign[::-1] :
+                if 'threshold' in x : 
+                    try : self.__design_opt['threshold'] = generate_shannon_bynum(float(x.split(':')[-1]))
+                    except : self._base.warnlong('阈值参数解析错误/ Threshold Patameter Parse Error')
+            #遍历alldesign找到minlen:15等参数
+            for x in self.args.alldesign[::-1] :
+                if 'minlen' in x : 
+                    try : self.__design_opt['minlen'] = int(x.split(':')[-1])
+                    except : self._base.warnlong('设计最小值参数解析错误/ All Design Minlen Patameter Parse Error')
+            #遍历alldesign找到gaps:0.1等参数
+            for x in self.args.alldesign[::-1] :
+                if 'gaps' in x : 
+                    try : self.__design_opt['gaps'] = float(x.split(':')[-1])
+                    except : self._base.warnlong('空白符占比参数解析错误/ Gaps Rate Patameter Parse Error')
+            #遍历alldesign找到tm:50等参数
+            for x in self.args.alldesign[::-1] :
+                if 'tm' in x : 
+                    try : self.__design_opt['tm'] = float(x.split(':')[-1])
+                    except : self._base.warnlong('熔解温度参数解析错误/ DNA Primer TM Patameter Parse Error')
+            #遍历alldesign找到window:1等参数
+            for x in self.args.alldesign[::-1] :
+                if 'window' in x : 
+                    try : self.__design_opt['window'] = int(x.split(':')[-1])
+                    except : self._base.warnlong('窗口参数解析错误/ Window Patameter Parse Error')
+            self.__design_opt['merge'] = True if 'merge' in self.args.alldesign else False
+            self.__design_opt['pdetail'] = True if 'pdetail' in self.args.alldesign else False
+            self.__design_opt['pdetail2'] = True if 'pdetail2' in self.args.alldesign else False
+            self.__design_opt['primer'] = True if 'primer' in self.args.alldesign else False
+            self.__design_opt['primer2'] = True if 'primer2' in self.args.alldesign else False
 
         '''
         扩增子评估相关参数配置
@@ -110,7 +116,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/11/16
+    更改日期: 2023/02/27
     '''
     #原始数据的保存
     def getorigin(self) :
@@ -125,7 +131,7 @@ class piecemain() :
                 if slt_id != '' and slt_seq != '' : self._origindata.update({slt_id: slt_seq})
 
             #如果不需要MUSCLE对齐，那么认为原始内容就是对齐的，所以直接计算香农熵
-            if 'muscle' not in self.args.alldesign :
+            if self.args.alldesign is not None and 'muscle' not in self.args.alldesign :
                 try :
                     seqlen, seqcnt = len(next(iter(self._origindata.values()))), len(self._origindata.values())
                     for bp in range(seqlen) : self._origindata_shannon.append(calc_shannon_entropy([Counter([seq[bp] for seq in self._origindata.values()]).get(slg, 0)/seqcnt for slg in DEFAULT_DNA_SINGLE_LIST]))
@@ -178,7 +184,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2023/02/15
+    更改日期: 2023/02/27
     '''
     #调用primer3-py进行引物设计
     #可以先将序列去重再进行引物设计，但是保存原始信息会比较麻烦，快速开发先走流程
@@ -246,7 +252,7 @@ class piecemain() :
         [self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : {}'.format(k,v)) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : None'.format(k)) for k, v in primer_dict.items()]
 
         if self.__design_opt['pdetail'] : self._base.baselog(area_statistic)
-        if self.__evaluate_opt['save'] : write_json('{}_all_primer1.json'.format(self._base._time), {k:({kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk, vv in v[0].items()}, {kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk, vv in v[1].items()}) for k, v in primer_dict.items() if len(v[0])+len(v[1])})
+        #if self.__evaluate_opt['save'] : write_json('{}_all_primer1.json'.format(self._base._time), {k:({kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk, vv in v[0].items()}, {kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk, vv in v[1].items()}) for k, v in primer_dict.items() if len(v[0])+len(v[1])})
         return primer_dict, area_statistic
 
     '''
@@ -361,7 +367,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/12/08
     更改人员: Nerium
-    更改日期: 2023/02/17
+    更改日期: 2023/02/27
     '''
     #调用primer3-py进行引物设计
     #通过第一次引物设计得到的区间直接从序列中提取
@@ -428,14 +434,14 @@ class piecemain() :
         if self.__design_opt['pdetail2'] : [self._base.baselog('{} : \nF{}\nR{}\n'.format(k,{kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk,vv in v[0].items()},{kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk,vv in v[1].items()})) if len(v[0])+len(v[1]) else self._base.baselog('{} : None'.format(k)) for k, v in primer_dict.items()]
         [self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : {}'.format(k,v)) if len(v[0])+len(v[1]) else self._base.debuglog(BASE_DEBUG_LEVEL3, '{} : None'.format(k)) for k, v in primer_dict.items()]
 
-        if self.__evaluate_opt['save'] : write_json('{}_all_primer2.json'.format(self._base._time), {k:({kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk, vv in v[0].items()}, {kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk, vv in v[1].items()}) for k, v in primer_dict.items() if len(v[0])+len(v[1])})
+        #if self.__evaluate_opt['save'] : write_json('{}_all_primer2.json'.format(self._base._time), {k:({kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk, vv in v[0].items()}, {kk:(len(vv), calc_tm_hairpin_homod(kk)) for kk, vv in v[1].items()}) for k, v in primer_dict.items() if len(v[0])+len(v[1])})
         return primer_dict, self._area_statistic
 
     '''
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2023/02/10
+    更改日期: 2023/02/27
     '''
     #主流程函数
     def maintrunk(self) :
@@ -474,7 +480,7 @@ class piecemain() :
             nonconser = pcds.detect_non_conser_area(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon, conser)
             self._base.baselog('非保守区间列表 / List Of Non Conservative Area is : \n{0}'.format(nonconser))
 
-            if self.__evaluate_opt['save'] : write_json('{}_conser_nonconser.json'.format(self._base._time), {'conser' : conser, 'nonconser' : nonconser})
+            #if self.__evaluate_opt['save'] : write_json('{}_conser_nonconser.json'.format(self._base._time), {'conser' : conser, 'nonconser' : nonconser})
 
             #非保守区间多样性
             nonconser_sort = self.rank_by_diverse(pcds, nonconser, '非保守区间', 'rank1' in self.args.alldesign)
@@ -516,6 +522,6 @@ class piecemain() :
             #评估扩增子覆盖度
             cover_rate = pcel.evaluate_cover_rate()
 
-            if self.__evaluate_opt['save'] : write_json('{}_recommand_area_primer.json'.format(self._base._time), pcel.recommend_area_primer())
+            if self.__evaluate_opt['save'] : write_json('{}_recommand_area_primer.json'.format(self._base._time), pcel.recommend_area_primer(dct=pcdp._same_cnt if 'pcdp' in locals().keys() is not None else None))
 
             if self.__evaluate_opt['blast'] : write_json('{}_final_recommand_area_primer.json'.format(self._base._time), pcel.blast_db_search('{}_recommand_area_primer.json'.format(self._base._time)))

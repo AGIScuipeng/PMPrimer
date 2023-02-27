@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/12/07
+更改日期: 2023/02/27
 '''
 
 from .piecedefine import *
@@ -15,7 +15,7 @@ import subprocess, platform
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/11/22
+更改日期: 2023/02/27
 '''
 #多序列比对、保守区间遍历、PCR设计等
 class piecedesign() :
@@ -33,7 +33,7 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/10/25
+    更改日期: 2023/02/27
     '''
     #subprocess调用muscle进行多序列比对
     def callmuscle(self) :
@@ -45,7 +45,7 @@ class piecedesign() :
             shell=True, stderr=subprocess.PIPE)
         cm.communicate()
 
-        self._base.baselog('\rMUSCLE 多序列比对完成' if cm.returncode == 0 else self._base.errorlog('MUSCLE 多序列比对异常'))
+        self._base.successlog('MUSCLE 多序列比对完成' if cm.returncode == 0 else self._base.errorlog('MUSCLE 多序列比对异常'))
 
     '''
     创建人员: Nerium
@@ -157,13 +157,14 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2023/02/17
+    更改日期: 2023/02/27
     '''
     #通过香农熵挖掘所有保守区域
-    def detect_conser_area_shannon(self, shannons, seqdict, threshold=None, minlen=None, pwindow=1, merge=None) :
+    def detect_conser_area_shannon(self, shannons, seqdict, threshold=None, minlen=None, pwindow=None, merge=None) :
         if threshold is None : threshold = self.__design_opt['threshold']
         if minlen is None : minlen = self.__design_opt['minlen']
         if merge is None : merge = self.__design_opt['merge']
+        if pwindow is None : pwindow = self.__design_opt['window']
 
         self._base.baselog('探测比对后序列的所有保守区域...')
         posl, posr, seqlen, posmem, mem, window = 1, 1, len(shannons), [], [1.0]*2, pwindow

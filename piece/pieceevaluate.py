@@ -134,7 +134,7 @@ class pieceevaluate() :
                     #再判断前保守区间的F引物和后保守区间的R引物是否存在（可以和上面if合并，但是为了方便调试信息的输出，所以分开）
                     if len(self._primer_dict.get(area[0], ({}, {}))[0]) and len(self._primer_dict.get(rang[0], ({}, {}))[1]) :
                         posmem.append((self._conser[idi], self._conser[idx]))
-                    else : self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 或 {1} 没有引物/{0} Or {1} No Primer.'.format(rang, area))
+                    else : self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 或 {1} 没有引物/{0} Or {1} No Primer.'.format(area, rang))
                 else :
                     self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 或 {1} 多样性{2}、 {3}超过阈值/ {0} Or {1} Haplotype Is {2}, {3} Overtake Threshold'.format(rang, area, len(self._primer_dict[area[0]][0].keys()), len(self._primer_dict[rang[0]][1].keys())))
 
@@ -231,14 +231,17 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/12/09
     更改人员: Nerium
-    更改日期: 2023/02/13
+    更改日期: 2023/02/27
     '''
     #待选扩增子的引物
-    def recommend_area_primer(self) :
+    def recommend_area_primer(self, dct=None) :
         tmp_data = {}
         for amp in self._posmem :
             spdf, spdr = self._primer_dict[amp[0][0]], self._primer_dict[amp[1][0]]
-            tmp_data.setdefault(str(amp), ({pri: (len(pset), calc_tm_hairpin_homod(pri)) for pri, pset in spdf[0].items()}, {pri: (len(pset), calc_tm_hairpin_homod(pri)) for pri, pset in spdr[1].items()}))
+            #根据引物的原始数量进行排序
+            fvalue = sorted({pri: (sum([dct.get(split_all_from_str(p)[0], 0)+1 for p in pset]) if dct is not None else len(pset), calc_tm_hairpin_homod(pri)) for pri, pset in spdf[0].items()}.items(), key=lambda z : z[1][0], reverse=True)
+            rvalue = sorted({pri: (sum([dct.get(split_all_from_str(p)[0], 0)+1 for p in pset]) if dct is not None else len(pset), calc_tm_hairpin_homod(pri)) for pri, pset in spdr[1].items()}.items(), key=lambda z : z[1][0], reverse=True)
+            tmp_data.setdefault(str(amp), ({pri : info for pri, info in fvalue}, {pri : info for pri, info in rvalue}))
 
             #简并引物
 
