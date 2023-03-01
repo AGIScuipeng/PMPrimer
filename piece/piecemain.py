@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/02/15
+更改日期: 2023/03/01
 '''
 
 from .piecedefine import *
@@ -18,7 +18,7 @@ import os
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/02/27
+更改日期: 2023/03/01
 '''
 #流程主类
 class piecemain() :
@@ -184,7 +184,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2023/02/27
+    更改日期: 2023/03/01
     '''
     #调用primer3-py进行引物设计
     #可以先将序列去重再进行引物设计，但是保存原始信息会比较麻烦，快速开发先走流程
@@ -210,16 +210,17 @@ class piecemain() :
                 if len(tmp_seq) - sum(list_count(tmp_seq, ['A','T','C','G','-']).values()) : 
                     self._base.warnlog('\n{} 含有简并符号故跳过/ Skip Because Have Special BP'.format(spe)); continue
 
+                seq_rm_gap_len = rang[1]-rang[0]-tmp_seq.count('-')+1
                 seq_args = {
                     'SEQUENCE_ID': '{}-{}'.format(rang[0], rang[1]),
                     'SEQUENCE_TEMPLATE': seq.replace('-', ''),
-                    'SEQUENCE_INCLUDED_REGION': [max(0, rang[0]-seq[:rang[0]-1].count('-')-1), rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1],
+                    'SEQUENCE_INCLUDED_REGION': [max(0, rang[0]-seq[:rang[0]-1].count('-')-1), seq_rm_gap_len],
                 }
                 opt_args = {
                     'PRIMER_MIN_SIZE':15,
-                    'PRIMER_OPT_SIZE':((15+rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1)//2) if rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1<35 else 25,
-                    'PRIMER_MAX_SIZE':rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1 if rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1<35 else 35,
-                    'PRIMER_PRODUCT_SIZE_RANGE':[rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1, max(100, rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1)],
+                    'PRIMER_OPT_SIZE':((15+seq_rm_gap_len)//2) if seq_rm_gap_len<25 else 20,
+                    'PRIMER_MAX_SIZE':min(25, seq_rm_gap_len),# if seq_rm_gap_len<35 else 35,
+                    'PRIMER_PRODUCT_SIZE_RANGE':[150, 1500],
                     'PRIMER_MIN_TM': self.__design_opt['tm'],
                     'PRIMER_PICK_LEFT_PRIMER': 1,
                     'PRIMER_PICK_RIGHT_PRIMER': 1,
@@ -227,7 +228,7 @@ class piecemain() :
                 }
                 #pair_primer = pcds.callprimer(target=seq_args, opt=opt_args)
                 try : pair_primer = pcds.callprimer(target=seq_args, opt=opt_args)
-                except : self._base.errorlog([max(0, rang[0]-seq[:rang[0]-1].count('-')-1), rang[1]-rang[0]-seq[rang[0]-1:rang[1]].count('-')+1])
+                except : self._base.errorlog([max(0, rang[0]-seq[:rang[0]-1].count('-')-1), seq_rm_gap_len])
 
                 #将原始样本名称对应，保留原始信息
                 for pri in pair_primer[0] :

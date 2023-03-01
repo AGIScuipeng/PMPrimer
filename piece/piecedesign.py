@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/02/27
+更改日期: 2023/03/01
 '''
 
 from .piecedefine import *
@@ -15,7 +15,7 @@ import subprocess, platform
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/02/27
+更改日期: 2023/03/01
 '''
 #多序列比对、保守区间遍历、PCR设计等
 class piecedesign() :
@@ -33,11 +33,11 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2023/02/27
+    更改日期: 2023/03/01
     '''
     #subprocess调用muscle进行多序列比对
     def callmuscle(self) :
-        self._base.baselog('MUSCLE 多序列对比中...', ends='')
+        self._base.baselog('MUSCLE 多序列对比中...')
         #!!!因为MSUCLE输出很多，所以Popen()中的stdout=PIPE和wait()不能结合使用，因为操作系统的管道大小有上限
         #很久之前就解决过的问题，但是因为对MUSCLE不了解，再次出现
         cm = subprocess.Popen('{}/{} --super5 {} --output {}'.format\
@@ -124,7 +124,7 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/11/22
     更改人员: Nerium
-    更改日期: 2023/02/17
+    更改日期: 2023/03/01
     '''
     #根据间隔的香农熵合并相近的保守区间
     def merge_conser_area(self, shannons, posmem, seqdict) :
@@ -144,8 +144,8 @@ class piecedesign() :
                 self._base.debuglog(BASE_DEBUG_LEVEL1, final_pos, ends= ' | ')
                 if final_pos[-1][1] == posmem[idx-1][1] : 
                     self._base.debuglog(BASE_DEBUG_LEVEL1, len(self.detect_haplotype(seqdict, final_pos[-1][0], posmem[idx][1])), ends=' | ')
-                    #还要看合并后的haplotype，现行写死100
-                    if len(self.detect_haplotype(seqdict, final_pos[-1][0], posmem[idx][1])) < 100 : final_pos[-1][1] = posmem[idx][1]
+                    #还要看合并后的haplotype，现行写死10
+                    if len(self.detect_haplotype(seqdict, final_pos[-1][0], posmem[idx][1])) < 10 : final_pos[-1][1] = posmem[idx][1]
                     else : final_pos.append(posmem[idx])
                 else : final_pos.append(posmem[idx])
             else : final_pos.append(posmem[idx])
@@ -157,7 +157,7 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2023/02/27
+    更改日期: 2023/03/01
     '''
     #通过香农熵挖掘所有保守区域
     def detect_conser_area_shannon(self, shannons, seqdict, threshold=None, minlen=None, pwindow=None, merge=None) :
@@ -173,7 +173,7 @@ class piecedesign() :
         while len(posmem) < 2 and window < 4 :
             while posr < seqlen :
                 while calc_conserve_termina_shannon(shannons, posl, posr, mem, threshold, window=window) and posr < seqlen : posr += 1
-                if posr - posl + (1 if posr-posl == 0 else 0) > minlen and mem[1] <= threshold : posmem.append([posl, posr-1 if posr < seqlen and posl != posr else posr])
+                if posr - posl + (1 if posr-posl == 0 else 0) >= minlen and mem[1] <= threshold : posmem.append([posl, posr-1 if posr < seqlen and posl != posr else posr])
                 posr += 1; posl = posr; mem = [1.0]*2
             window += 1; posl, posr, seqlen, mem = 1, 1, len(shannons), [1.0]*2
 
@@ -182,12 +182,12 @@ class piecedesign() :
         seqcnt = len(seqdict)
         #正序删除list会导致元素迁移从而删除错误，故倒序遍历
         for rang in posmem[::-1] :
-            tcnt = 0
+            tcnt, rmflag = 0, False
             for ibp in range(max(0, rang[0]-1), rang[1]) :
                 tmp_rate = [seq[ibp] for seq in seqdict.values()].count('-')/seqcnt
                 if tmp_rate >= 0.9 : tcnt += 1
-                if tmp_rate >= self.__design_opt['gaps'] : posmem.remove(rang); self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} {2}空白符占比 {1:.2f}% 区间删除/{0} Deleted For {2} Gaps Rate {1:.2f}%'.format(rang, tmp_rate*100, ibp+1)); break
-            if rang[1] - rang[0] + 1 - tcnt < 15 : posmem.remove(rang); self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 有效长度不足15/ Area {0} Truly Length Less Than 15 bp'.format(rang))
+                if tmp_rate >= self.__design_opt['gaps'] : posmem.remove(rang); rmflag = True; self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} {2}空白符占比 {1:.2f}% 区间删除/{0} Deleted For {2} Gaps Rate {1:.2f}%'.format(rang, tmp_rate*100, ibp+1)); break
+            if rang[1] - rang[0] + 1 - tcnt < 15 and rmflag is not True : posmem.remove(rang); self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 有效长度不足15/ Area {0} Truly Length Less Than 15 bp'.format(rang))
 
 
         #没有足够的保守区间，程序直接退出
