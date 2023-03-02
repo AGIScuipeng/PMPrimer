@@ -223,6 +223,74 @@ def split_all_from_str(string) :
 
 '''
 创建人员: Nerium
+创建日期: 2023/03/02
+更改人员: Nerium
+更改日期: 2023/03/02
+'''
+#根据primer_dict数据生成简并可能不大于limit的简并结果
+def generate_degene(primer_dict, dct=None, limit=12) :
+
+    sort_seqs = sorted(primer_dict.items(), key=lambda z : sum([dct.get(split_all_from_str(p)[0], 0)+1 for p in z[1]]) if dct is not None else len(z[1]), reverse=True)
+    major_seq = sort_seqs[0][0]
+    seqlen = len(major_seq)
+    degene_cnt, seq_Nox, seqs_cnt = 1, 1, len(sort_seqs)
+    ret = ''
+
+    while degene_cnt < limit :
+        final_seq, degene_cnt = '', 1
+        tseqs = sort_seqs[:seq_Nox]
+        for i in range(seqlen) :
+            bpset = set()
+            for seq in tseqs :
+                bpset.add(seq[0][i])
+            if len(bpset) == 1 : final_seq += bpset.pop()
+            else : final_seq += GENE_DEGENE.get(''.join(sorted(bpset)), '-'); degene_cnt *= len(bpset)
+
+        if degene_cnt <= 12 : ret = final_seq
+        seq_Nox += 1
+        if seq_Nox > seqs_cnt : break
+
+    return ret
+
+'''
+创建人员: Nerium
+创建日期: 2023/03/02
+更改人员: Nerium
+更改日期: 2023/03/02
+'''
+#把bps简并序列列出所有可能性
+def generate_all(bps, idx) :
+    if len(bps)-1 == idx : return GENE_RELEASE[bps[idx]]
+    return [rep+bpi for rep in GENE_RELEASE[bps[idx]] for bpi in generate_all(bps, idx+1)]
+
+'''
+创建人员: Nerium
+创建日期: 2023/03/02
+更改人员: Nerium
+更改日期: 2023/03/02
+'''
+#挑选出简并位点找到所有可能，再替换出原始序列
+def generate_rep(bps, reverse=False) :
+    gall = ''
+    for idx in range(len(bps)) :
+        if bps[idx] not in DEFAULT_DNA_SINGLE_LIST : gall += bps[idx]
+    
+    rall = generate_all(gall, 0)
+
+    res_list = []
+    for rep in rall :
+        tidx, tbps = 0, ''
+        for idx in range(len(bps)) :
+            if bps[idx] not in DEFAULT_DNA_SINGLE_LIST : tbps += rep[tidx]; tidx += 1
+            else : tbps += bps[idx]
+
+        res_list.append(tbps)
+
+    if reverse : return [''.join(DEFAULT_DNA_REFLECT_DICT[bp] for bp in res[::-1]) for res in res_list]
+    return res_list
+
+'''
+创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
 更改日期: 2022/12/09

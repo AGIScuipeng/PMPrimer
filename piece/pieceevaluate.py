@@ -2,11 +2,11 @@
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2023/02/24
+更改日期: 2023/03/02
 '''
 
 from .piecedefine import *
-from .piecebase import calc_tm_hairpin_homod, split_all_from_str, write_json
+from .piecebase import calc_tm_hairpin_homod, generate_degene, split_all_from_str, write_json
 
 '''
 创建人员: Nerium
@@ -30,12 +30,12 @@ def useret(fname) :
 创建人员: Nerium
 创建日期: 2022/12/12
 更改人员: Nerium
-更改日期: 2022/12/14
+更改日期: 2023/03/02
 '''
 def json2fasta(data, fname) :
     with open('{}_tmp.fasta'.format(fname), 'w') as ff:
         for area, fr in data.items() :
-            for idx, lv in enumerate(fr) :
+            for idx, lv in enumerate([fr[1], fr[3]]) :
                 for idy, pri in enumerate(list(lv.keys())) :
                     ff.write('>{}_{}_{}_{}\n'.format(area, DATA2JSON_REFELCT[idx], idy, pri))
                     if idx ==0 :ff.write(pri+'\n')
@@ -46,7 +46,7 @@ def json2fasta(data, fname) :
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2023/02/24
+更改日期: 2023/03/02
 '''
 class pieceevaluate() :
     def __init__(self, pbase, nonconser_sort, conser, primer_dict, seqdict, evaluate_opt) -> None:
@@ -56,6 +56,7 @@ class pieceevaluate() :
         self._seqdict = seqdict
         self.__evaluate_opt = evaluate_opt
         self._effective_len = {}
+        self._primer_degene = {'F': dict(), 'R': dict()}
 
         self._base = pbase
 
@@ -231,19 +232,22 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/12/09
     更改人员: Nerium
-    更改日期: 2023/02/27
+    更改日期: 2023/03/02
     '''
     #待选扩增子的引物
     def recommend_area_primer(self, dct=None) :
         tmp_data = {}
         for amp in self._posmem :
             spdf, spdr = self._primer_dict[amp[0][0]], self._primer_dict[amp[1][0]]
+
+            #获取简并的结果
+            fdegene, rdegene = generate_degene(spdf[0], dct, self.__evaluate_opt['degene']), generate_degene(spdr[1], dct, self.__evaluate_opt['degene'])
+            self._primer_degene['F'].update({amp[0][0]: fdegene})
+            self._primer_degene['R'].update({amp[1][0]: rdegene})
             #根据引物的原始数量进行排序
             fvalue = sorted({pri: (sum([dct.get(split_all_from_str(p)[0], 0)+1 for p in pset]) if dct is not None else len(pset), calc_tm_hairpin_homod(pri)) for pri, pset in spdf[0].items()}.items(), key=lambda z : z[1][0], reverse=True)
             rvalue = sorted({pri: (sum([dct.get(split_all_from_str(p)[0], 0)+1 for p in pset]) if dct is not None else len(pset), calc_tm_hairpin_homod(pri)) for pri, pset in spdr[1].items()}.items(), key=lambda z : z[1][0], reverse=True)
-            tmp_data.setdefault(str(amp), ({pri : info for pri, info in fvalue}, {pri : info for pri, info in rvalue}))
-
-            #简并引物
+            tmp_data.setdefault(str(amp), (fdegene, {pri : info for pri, info in fvalue}, rdegene, {pri : info for pri, info in rvalue}))
 
         self._base.warnlog('请注意引物设计和引物评估模块的的熔解温度可能存在差异 / Please Attention TM Of Primer Design Module & Primer Evaluate Maybe Exist Diff')
 

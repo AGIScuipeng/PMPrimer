@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/03/01
+更改日期: 2023/03/02
 '''
 
 from .piecedefine import *
@@ -18,7 +18,7 @@ import os
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/03/01
+更改日期: 2023/03/02
 '''
 #流程主类
 class piecemain() :
@@ -73,7 +73,7 @@ class piecemain() :
         扩增子评估相关参数配置
         '''
         self.__evaluate_opt = {'minlen' : 150, 'maxlen' : 1500, 'hpcnt' : 10, 'merge': False, 'fullp' : False, 'save': False, 'tm' : 50.0, \
-            'rmlow' : False, 'blast' : None}
+            'rmlow' : False, 'blast' : None, 'degene' : 12}
         #遍历evaluate找到hpcnt:10等参数
         for x in self.args.evaluate[::-1] :
             if 'hpcnt' in x : 
@@ -94,6 +94,11 @@ class piecemain() :
             if 'blast' in x : 
                 try : self.__evaluate_opt['blast'] = x.split(':')[-1].split(',')
                 except : self._base.warnlong('序列集合文件路径解析出错/ Blast File Parameter Parse Error')
+        #遍历evaluate找到degene:12等参数
+        for x in self.args.evaluate[::-1] :
+            if 'degene' in x : 
+                try : self.__evaluate_opt['degene'] = int(x.split(':')[-1])
+                except : self._base.warnlong('简并参数解析出错/ Degenerate Parameter Parse Error')
         self.__evaluate_opt['merge'] = True if 'merge' in self.args.evaluate else False
         self.__evaluate_opt['fullp'] = True if 'fullp' in self.args.evaluate else False
         self.__evaluate_opt['save'] = True if 'save' in self.args.evaluate else False
@@ -442,7 +447,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2023/02/27
+    更改日期: 2023/03/02
     '''
     #主流程函数
     def maintrunk(self) :
@@ -517,12 +522,15 @@ class piecemain() :
 
             if len(pcel._posmem) == 0 : self._base.errorlog('没有合适的扩增子区间/ No Right Amplicon')
 
+            #对扩增子信息进行整合
+            amplicon_info = pcel.recommend_area_primer(dct=pcdp._same_cnt if 'pcdp' in locals().keys() is not None else None)
+
             #评估扩增子分辨力
             reso = pcel.evaluate_resolution()
 
             #评估扩增子覆盖度
             cover_rate = pcel.evaluate_cover_rate()
 
-            if self.__evaluate_opt['save'] : write_json('{}_recommand_area_primer.json'.format(self._base._time), pcel.recommend_area_primer(dct=pcdp._same_cnt if 'pcdp' in locals().keys() is not None else None))
+            if self.__evaluate_opt['save'] : write_json('{}_recommand_area_primer.json'.format(self._base._time), amplicon_info)
 
             if self.__evaluate_opt['blast'] : write_json('{}_final_recommand_area_primer.json'.format(self._base._time), pcel.blast_db_search('{}_recommand_area_primer.json'.format(self._base._time)))
