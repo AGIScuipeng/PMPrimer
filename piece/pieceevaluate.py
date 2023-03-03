@@ -164,12 +164,19 @@ class pieceevaluate() :
 
         #记录每条序列可以被覆盖的保守区位点
         for idstr, seq in self._seqdict.items() :
+            tseq = seq.replace('-', '')
             for posi, pris in tmp_degene['F'].items() :
                 for pri in pris :
-                    if pri in seq : cover_record['F'][posi].add(' '.join(split_all_from_str(idstr)[:4])); break
+                    if pri in tseq : 
+                        temp = split_all_from_str(idstr)
+                        if temp is None : break
+                        cover_record['F'][posi].add(' '.join(temp[:4])); break
             for posi, pris in tmp_degene['R'].items() :
                 for pri in pris :
-                    if pri in seq : cover_record['R'][posi].add(' '.join(split_all_from_str(idstr)[:4])); break
+                    if pri in tseq :
+                        temp = split_all_from_str(idstr)
+                        if temp is None : break
+                        cover_record['R'][posi].add(' '.join(temp[:4])); break
 
         self._base.baselog('\n扩增子覆盖度为/ Cover Rate Of Amplicon：')
         rates = {}
@@ -187,7 +194,8 @@ class pieceevaluate() :
 
             #根据保守区位点获取交集（存在误差，相同三级的序列有未覆盖的情况下会统计成100%）
             cover_f, cover_r = cover_record['F'][amp[0][0]], cover_record['R'][amp[1][0]]
-            cover_f, cover_r = set([' '.join(split_all_from_str(f)[1:4]) for f in cover_f]), set([' '.join(split_all_from_str(r)[1:4]) for r in cover_r])
+            cover_f = set([' '.join(split_all_from_str(f)[1:4]) for f in cover_f if split_all_from_str(f) is not None])
+            cover_r = set([' '.join(split_all_from_str(r)[1:4]) for r in cover_r if split_all_from_str(r) is not None])
             coveres = cover_f & cover_r
 
             self._base.debuglog(BASE_DEBUG_LEVEL1, ([amp[0][0], amp[1][1]], len(cover_f), len(cover_r), len(coveres), len(self._statistic_cnt[2])))

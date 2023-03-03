@@ -447,7 +447,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2023/03/02
+    更改日期: 2023/03/03
     '''
     #主流程函数
     def maintrunk(self) :
@@ -502,7 +502,7 @@ class piecemain() :
             if 'haplo' in self.args.alldesign : self._base.baselog('\n保守区间的haplotype情况如下：')
             for rang in conser :
                 alltype = pcds.detect_haplotype(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
-                if 'haplo' in self.args.alldesign : self._base.baselog('Area {}; \tLen : {}; \t {}'.format(rang, rang[1]-rang[0]+1, len(alltype)))
+                if 'haplo' in self.args.alldesign : self._base.baselog('Area {}; \t {}'.format(rang, len(alltype)))
                 self._alltype.setdefault(str(rang), alltype)
 
             if 'primer' in self.args.alldesign or 'primer2' in self.args.alldesign :
