@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/03/02
+更改日期: 2023/03/03
 '''
 
 from .piecedefine import *
@@ -18,7 +18,7 @@ import os
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/03/02
+更改日期: 2023/03/03
 '''
 #流程主类
 class piecemain() :
@@ -72,7 +72,7 @@ class piecemain() :
         '''
         扩增子评估相关参数配置
         '''
-        self.__evaluate_opt = {'minlen' : 150, 'maxlen' : 1500, 'hpcnt' : 10, 'merge': False, 'fullp' : False, 'save': False, 'tm' : 50.0, \
+        self.__evaluate_opt = {'minlen' : 150, 'maxlen' : 1500, 'hpcnt' : 10, 'merge': False, 'fullp' : True, 'save': False, 'tm' : 50.0, \
             'rmlow' : False, 'blast' : None, 'degene' : 12}
         #遍历evaluate找到hpcnt:10等参数
         for x in self.args.evaluate[::-1] :
@@ -100,7 +100,7 @@ class piecemain() :
                 try : self.__evaluate_opt['degene'] = int(x.split(':')[-1])
                 except : self._base.warnlong('简并参数解析出错/ Degenerate Parameter Parse Error')
         self.__evaluate_opt['merge'] = True if 'merge' in self.args.evaluate else False
-        self.__evaluate_opt['fullp'] = True if 'fullp' in self.args.evaluate else False
+        #self.__evaluate_opt['fullp'] = True if 'fullp' in self.args.evaluate else False
         self.__evaluate_opt['save'] = True if 'save' in self.args.evaluate else False
         self.__evaluate_opt['tm'] = self.__design_opt['tm']
         self.__evaluate_opt['rmlow'] = True if 'rmlow' in self.args.evaluate else False

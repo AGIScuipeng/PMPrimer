@@ -2,11 +2,11 @@
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2023/03/02
+更改日期: 2023/03/03
 '''
 
 from .piecedefine import *
-from .piecebase import calc_tm_hairpin_homod, generate_degene, split_all_from_str, write_json
+from .piecebase import calc_tm_hairpin_homod, generate_degene, generate_rep, split_all_from_str, write_json
 
 '''
 创建人员: Nerium
@@ -46,7 +46,7 @@ def json2fasta(data, fname) :
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2023/03/02
+更改日期: 2023/03/03
 '''
 class pieceevaluate() :
     def __init__(self, pbase, nonconser_sort, conser, primer_dict, seqdict, evaluate_opt) -> None:
@@ -148,10 +148,29 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/11
     更改人员: Nerium
-    更改日期: 2023/02/23
+    更改日期: 22023/03/03
     '''
     #计算扩增子的覆盖度（目前是F、R计算亚种并取交集）
     def evaluate_cover_rate(self) :
+        #根据简并引物生成所有引物
+        tmp_degene = {'F' : dict(), 'R': dict()}
+        cover_record = {'F' : dict(), 'R' : dict()}
+        for posi, degene in self._primer_degene['F'].items() :
+            tmp_degene['F'].setdefault(posi, generate_rep(degene))
+            cover_record['F'].setdefault(posi, set())
+        for posi, degene in self._primer_degene['R'].items() :
+            tmp_degene['R'].setdefault(posi, generate_rep(degene, reverse=True))
+            cover_record['R'].setdefault(posi, set())
+
+        #记录每条序列可以被覆盖的保守区位点
+        for idstr, seq in self._seqdict.items() :
+            for posi, pris in tmp_degene['F'].items() :
+                for pri in pris :
+                    if pri in seq : cover_record['F'][posi].add(' '.join(split_all_from_str(idstr)[:4])); break
+            for posi, pris in tmp_degene['R'].items() :
+                for pri in pris :
+                    if pri in seq : cover_record['R'][posi].add(' '.join(split_all_from_str(idstr)[:4])); break
+
         self._base.baselog('\n扩增子覆盖度为/ Cover Rate Of Amplicon：')
         rates = {}
         for amp in self._posmem :
@@ -166,12 +185,13 @@ class pieceevaluate() :
                 for pri in list(spdr[1].keys()) :
                     if primer3.calcTm(pri) < self.__evaluate_opt['tm'] : spdr[1].pop(pri)
 
-            #print([(len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v if g in s}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v if g in s})) for g in self._statistic_cnt[0]])
-            #rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), [min(len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v if g in s}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v if g in s})) / len([True for s in self._statistic_cnt[2] if g in s]) for g in self._statistic_cnt[0]])
+            #根据保守区位点获取交集（存在误差，相同三级的序列有未覆盖的情况下会统计成100%）
+            cover_f, cover_r = cover_record['F'][amp[0][0]], cover_record['R'][amp[1][0]]
+            cover_f, cover_r = set([' '.join(split_all_from_str(f)[1:4]) for f in cover_f]), set([' '.join(split_all_from_str(r)[1:4]) for r in cover_r])
+            coveres = cover_f & cover_r
 
-            self._base.debuglog(BASE_DEBUG_LEVEL1, ([amp[0][0], amp[1][1]], len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v if split_all_from_str(s) is not None}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v if split_all_from_str(s) is not None})))
-            #rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), min(len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v}), len({'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v})))
-            rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), len({'_'.join(split_all_from_str(s)[1:]) for v in spdf[0].values() for s in v if split_all_from_str(s) is not None} & {'_'.join(split_all_from_str(s)[1:]) for v in spdr[1].values() for s in v if split_all_from_str(s) is not None}))
+            self._base.debuglog(BASE_DEBUG_LEVEL1, ([amp[0][0], amp[1][1]], len(cover_f), len(cover_r), len(coveres), len(self._statistic_cnt[2])))
+            rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), len(coveres))
 
         self._base.baselog('\n'.join(['{}, 有效长度 {} bp : 亚种{:.2f}%'.format(k, self._effective_len[k], v*100/len(self._statistic_cnt[2])) for k, v in rates.items()]))
         self._cover_rates = rates

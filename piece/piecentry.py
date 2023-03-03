@@ -18,7 +18,7 @@ import sys
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/02/27
+更改日期: 2023/03/03
 '''
 #封装包程序的入口
 def entry() :
@@ -50,7 +50,6 @@ def entry() :
                             \nmaxlen 扩增子区间最大值，默认为1500，使用： maxlen:1500\
                             \nblast 使用文件建库和查询，多个fasta文件使用,来分隔，使用： blast:../taxo1.fasta,homo.fasta\
                             \nmerge 多个扩增子合并\
-                            \nfullp 使用全排列生成待选扩增子\
                             \nrmlow 去除引物提取熔解温度低于设计模块配置值的引物\
                             \nsave 保存所有中间文件''')
     #paramparse.add_argument('--nextuse', '-n', help='后续SNP挖掘和物种鉴定')
