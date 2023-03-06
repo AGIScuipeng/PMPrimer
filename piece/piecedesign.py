@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/03/01
+更改日期: 2023/03/06
 '''
 
 from .piecedefine import *
@@ -15,7 +15,7 @@ import subprocess, platform
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/03/01
+更改日期: 2023/03/06
 '''
 #多序列比对、保守区间遍历、PCR设计等
 class piecedesign() :
@@ -51,17 +51,17 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/11/28
+    更改日期: 2023/03/06
     '''
     #调用primer3-py设计引物
     def callprimer(self, target, opt=None, tops=99) :
         #分别设计F引物，R引物
         opt['PRIMER_PICK_RIGHT_PRIMER']=0
-        f_result = bindings.designPrimers(target, opt)
+        f_result = bindings.design_primers(target, opt)
         if f_result['PRIMER_LEFT_NUM_RETURNED'] == 0 : self._base.debuglog(BASE_DEBUG_LEVEL3, f_result)
 
         opt['PRIMER_PICK_RIGHT_PRIMER']=1; opt['PRIMER_PICK_LEFT_PRIMER']=0
-        r_result = bindings.designPrimers(target, opt)
+        r_result = bindings.design_primers(target, opt)
         if r_result['PRIMER_RIGHT_NUM_RETURNED'] == 0 : self._base.debuglog(BASE_DEBUG_LEVEL3, r_result)
 
         #TOPS参数暂且无用，后续可能会有用，故暂时保留

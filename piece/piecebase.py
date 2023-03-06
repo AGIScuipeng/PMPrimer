@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/02/15
+更改日期: 2023/03/06
 '''
 
 from .piecedefine import *
@@ -38,13 +38,13 @@ def list_count(seq, l) :
 创建人员: Nerium
 创建日期: 2022/12/09
 更改人员: Nerium
-更改日期: 2022/12/09
+更改日期: 2023/03/06
 '''
 #根据序列，计算TM和同源二聚体
 def calc_tm_hairpin_homod(seq) :
-    tm = primer3.calcTm(seq)
-    hpin = primer3.calcHairpin(seq)
-    homod = primer3.calcHomodimer(seq)
+    tm = primer3.calc_tm(seq)
+    hpin = primer3.calc_hairpin(seq)
+    homod = primer3.calc_homodimer(seq)
 
     return tm, False if hpin.tm < 25 else True, False if homod.tm < 25 else True
 
