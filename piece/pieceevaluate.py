@@ -148,18 +148,18 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/10/11
     更改人员: Nerium
-    更改日期: 22023/03/03
+    更改日期: 2023/03/07
     '''
     #计算扩增子的覆盖度（目前是F、R计算亚种并取交集）
     def evaluate_cover_rate(self) :
         #根据简并引物生成所有引物
         tmp_degene = {'F' : dict(), 'R': dict()}
         cover_record = {'F' : dict(), 'R' : dict()}
-        for posi, degene in self._primer_degene['F'].items() :
-            tmp_degene['F'].setdefault(posi, generate_rep(degene))
+        for posi, (degene, haplo) in self._primer_degene['F'].items() :
+            tmp_degene['F'].setdefault(posi, haplo)
             cover_record['F'].setdefault(posi, set())
-        for posi, degene in self._primer_degene['R'].items() :
-            tmp_degene['R'].setdefault(posi, generate_rep(degene, reverse=True))
+        for posi, (degene, haplo) in self._primer_degene['R'].items() :
+            tmp_degene['R'].setdefault(posi, [''.join([DEFAULT_DNA_REFLECT_DICT[bp] for bp in h[::-1]]) for h in haplo])
             cover_record['R'].setdefault(posi, set())
 
         #记录每条序列可以被覆盖的保守区位点
@@ -260,7 +260,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/12/09
     更改人员: Nerium
-    更改日期: 2023/03/02
+    更改日期: 2023/03/07
     '''
     #待选扩增子的引物
     def recommend_area_primer(self, dct=None) :
@@ -269,9 +269,10 @@ class pieceevaluate() :
             spdf, spdr = self._primer_dict[amp[0][0]], self._primer_dict[amp[1][0]]
 
             #获取简并的结果
-            fdegene, rdegene = generate_degene(spdf[0], dct, self.__evaluate_opt['degene']), generate_degene(spdr[1], dct, self.__evaluate_opt['degene'])
-            self._primer_degene['F'].update({amp[0][0]: fdegene})
-            self._primer_degene['R'].update({amp[1][0]: rdegene})
+            fdegene, fhaplo = generate_degene(spdf[0], dct, self.__evaluate_opt['degene'])
+            rdegene, rhaplo = generate_degene(spdr[1], dct, self.__evaluate_opt['degene'])
+            self._primer_degene['F'].update({amp[0][0]: [fdegene, fhaplo]})
+            self._primer_degene['R'].update({amp[1][0]: [rdegene, rhaplo]})
             #根据引物的原始数量进行排序
             fvalue = sorted({pri: (sum([dct.get(split_all_from_str(p)[0], 0)+1 for p in pset]) if dct is not None else len(pset), calc_tm_hairpin_homod(pri)) for pri, pset in spdf[0].items()}.items(), key=lambda z : z[1][0], reverse=True)
             rvalue = sorted({pri: (sum([dct.get(split_all_from_str(p)[0], 0)+1 for p in pset]) if dct is not None else len(pset), calc_tm_hairpin_homod(pri)) for pri, pset in spdr[1].items()}.items(), key=lambda z : z[1][0], reverse=True)

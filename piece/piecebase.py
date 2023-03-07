@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/03/06
+更改日期: 2023/03/07
 '''
 
 from .piecedefine import *
@@ -225,7 +225,7 @@ def split_all_from_str(string) :
 创建人员: Nerium
 创建日期: 2023/03/02
 更改人员: Nerium
-更改日期: 2023/03/02
+更改日期: 2023/03/07
 '''
 #根据primer_dict数据生成简并可能不大于limit的简并结果
 def generate_degene(primer_dict, dct=None, limit=12) :
@@ -234,7 +234,7 @@ def generate_degene(primer_dict, dct=None, limit=12) :
     major_seq = sort_seqs[0][0]
     seqlen = len(major_seq)
     degene_cnt, seq_Nox, seqs_cnt = 1, 1, len(sort_seqs)
-    ret = ''
+    ret, retidx = '', 1
 
     while degene_cnt < limit :
         final_seq, degene_cnt = '', 1
@@ -246,11 +246,11 @@ def generate_degene(primer_dict, dct=None, limit=12) :
             if len(bpset) == 1 : final_seq += bpset.pop()
             else : final_seq += GENE_DEGENE.get(''.join(sorted(bpset)), '-'); degene_cnt *= len(bpset)
 
-        if degene_cnt <= 12 : ret = final_seq
+        if degene_cnt <= limit : ret = final_seq; retidx = seq_Nox
         seq_Nox += 1
         if seq_Nox > seqs_cnt : break
 
-    return ret
+    return ret, [seq[0] for seq in sort_seqs[:retidx]]
 
 '''
 创建人员: Nerium
