@@ -193,7 +193,7 @@ class piecedesign() :
         #没有足够的保守区间，程序直接退出
         if len(posmem) < 2 : self._base.errorlog('\n香农熵中断和延续法无法探测到足够的保守区域/ Shannon Terminate Or Continue Cannot Detect Enough Conservate Area')
         self._base.successlog('\r比对后序列的所有保守区域探测完毕')
-        #[[108,128], [216,235], [391,411], [504,525], [755,774], [892,909]]
+        #[[57,77], [165,184], [339,360], [453,474], [698,717], [835,852]]
         #[[148,168], [569,589]]
         return posmem
 
