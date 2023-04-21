@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/03/07
+更改日期: 2023/04/21
 '''
 
 from .piecedefine import *
@@ -208,13 +208,13 @@ def calc_gaps_in_region(seq, ppos, llen, reverse=False) :
 创建人员: Nerium
 创建日期: 2022/10/27
 更改人员: Nerium
-更改日期: 2022/10/27
+更改日期: 2023/04/21
 '''
 #从字符串中分离出id，属，种，亚种
 def split_all_from_str(string) :
     strsplit = string.split(' ')
 
-    if strsplit[1] == 'Unclassified' or len(strsplit) < 4 : return None
+    if strsplit[1] == 'Unclassified' or len(strsplit) < 5 : return None
 
     if strsplit[3] == 'subsp.' or strsplit[3] == 'variant' :
         return strsplit[0], strsplit[1], strsplit[2], strsplit[4]
