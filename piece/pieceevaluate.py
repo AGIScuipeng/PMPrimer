@@ -156,10 +156,10 @@ class pieceevaluate() :
         tmp_degene = {'F' : dict(), 'R': dict()}
         cover_record = {'F' : dict(), 'R' : dict()}
         for posi, (degene, haplo) in self._primer_degene['F'].items() :
-            tmp_degene['F'].setdefault(posi, haplo)
+            tmp_degene['F'].setdefault(posi, generate_rep(degene))
             cover_record['F'].setdefault(posi, set())
         for posi, (degene, haplo) in self._primer_degene['R'].items() :
-            tmp_degene['R'].setdefault(posi, [''.join([DEFAULT_DNA_REFLECT_DICT[bp] for bp in h[::-1]]) for h in haplo])
+            tmp_degene['R'].setdefault(posi, generate_rep(degene, reverse=True))#[''.join([DEFAULT_DNA_REFLECT_DICT[bp] for bp in h[::-1]]) for h in haplo])
             cover_record['R'].setdefault(posi, set())
 
         #记录每条序列可以被覆盖的保守区位点
@@ -194,14 +194,14 @@ class pieceevaluate() :
 
             #根据保守区位点获取交集（存在误差，相同三级的序列有未覆盖的情况下会统计成100%）
             cover_f, cover_r = cover_record['F'][amp[0][0]], cover_record['R'][amp[1][0]]
-            cover_f = set([' '.join(split_all_from_str(f)[1:4]) for f in cover_f if split_all_from_str(f) is not None])
-            cover_r = set([' '.join(split_all_from_str(r)[1:4]) for r in cover_r if split_all_from_str(r) is not None])
+            cover_f = set([split_all_from_str(f)[0] for f in cover_f if split_all_from_str(f) is not None])
+            cover_r = set([split_all_from_str(r)[0] for r in cover_r if split_all_from_str(r) is not None])
             coveres = cover_f & cover_r
 
-            self._base.debuglog(BASE_DEBUG_LEVEL1, ([amp[0][0], amp[1][1]], len(cover_f), len(cover_r), len(coveres), len(self._statistic_cnt[2])))
+            self._base.debuglog(BASE_DEBUG_LEVEL1, ([amp[0][0], amp[1][1]], len(cover_f), len(cover_r), len(coveres), len(self._seqdict)))
             rates.setdefault('[{},{}]'.format(amp[0][0], amp[1][1]), len(coveres))
 
-        self._base.baselog('\n'.join(['{}, 有效长度 {} bp : 亚种{:.2f}%'.format(k, self._effective_len[k], v*100/len(self._statistic_cnt[2])) for k, v in rates.items()]))
+        self._base.baselog('\n'.join(['{}, 有效长度 {} bp : {:.2f}%'.format(k, self._effective_len[k], v*100/len(self._seqdict)) for k, v in rates.items()]))
         self._cover_rates = rates
         return rates
 
@@ -225,7 +225,7 @@ class pieceevaluate() :
                 if idsplit is None : continue
                 genuset.add(idsplit[1]); speset.add('_'.join(idsplit[1:3])); subset.add('_'.join(idsplit[1:4]))
 
-                tseq = seq[diverse1-1:diverse2].replace('-', '')
+                tseq = seq[diverse1:diverse2-1].replace('-', '')
                 if tseq in resdict : resdict[tseq].add('_'.join(idsplit[1:]))
                 else : resdict.setdefault(tseq, {'_'.join(idsplit[1:]),})
 

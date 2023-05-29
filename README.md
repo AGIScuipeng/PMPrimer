@@ -1,7 +1,7 @@
 # 扩增子流程化
 English ReadMe, [Click Here](README_EN.md)
 ## 0x0 模块解析
-> 本软件需要依赖第三方：primer3-py、biopython、pyecharts等；
+> 本软件需要依赖第三方：primer3-py、biopython、seaborn等；
 
 > 使用BLAST需要本地安装有ncbi-blast-2.13.0+；
 

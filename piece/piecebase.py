@@ -214,9 +214,9 @@ def calc_gaps_in_region(seq, ppos, llen, reverse=False) :
 def split_all_from_str(string) :
     strsplit = string.split(' ')
 
-    if strsplit[1] == 'Unclassified' or len(strsplit) < 5 : return None
+    if strsplit[1] == 'Unclassified' or len(strsplit) < 3 : return None
 
-    if strsplit[3] == 'subsp.' or strsplit[3] == 'variant' :
+    if (strsplit[3] == 'subsp.' or strsplit[3] == 'variant') and len(strsplit) > 4 :
         return strsplit[0], strsplit[1], strsplit[2], strsplit[4]
 
     return strsplit[0], strsplit[1], strsplit[2], strsplit[2]
