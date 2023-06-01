@@ -69,7 +69,7 @@ def entry() :
                                 \nmerge Use merge module to merge conservative regions\
                                 \nprimer2 Primer design and extract\
                                 \npdetail2 Information of primer2''')
-        paramparse.add_argument('--debuglevel', '-d', help='调试等级', type=int, default=0)
+        paramparse.add_argument('--debuglevel', '-d', help='debug level', type=int, default=0)
         paramparse.add_argument('--evaluate', '-e', nargs='+', default=['default'], 
                                 help='''Amplicon selection and evaluation module, has the following parameters: \
                                 \nhpcnt Maximum count of haploType, default is 10, use like : hpcnt:10\
