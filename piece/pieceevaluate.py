@@ -2,11 +2,27 @@
 创建人员: Nerium
 创建日期: 2022/09/29
 更改人员: Nerium
-更改日期: 2023/03/03
+更改日期: 2023/06/02
 '''
 
 from .piecedefine import *
 from .piecebase import calc_tm_hairpin_homod, generate_degene, generate_rep, split_all_from_str, write_json
+
+'''
+创建人员: Nerium
+创建日期: 2023/06/02
+更改人员: Nerium
+更改日期: 2023/06/02
+'''
+def primer_cover(pri, seqdict, reverse=False) :
+    temp_pri = pri if reverse is False else ''.join(DEFAULT_DNA_REFLECT_DICT[bp] for bp in pri[::-1])
+    seq_cnt = len(seqdict)
+
+    exist_num = 0
+    for seq in seqdict.values() :
+        if temp_pri in seq : exist_num += 1
+
+    return exist_num/seq_cnt
 
 '''
 创建人员: Nerium
@@ -260,7 +276,7 @@ class pieceevaluate() :
     创建人员: Nerium
     创建日期: 2022/12/09
     更改人员: Nerium
-    更改日期: 2023/03/07
+    更改日期: 2023/06/02
     '''
     #待选扩增子的引物
     def recommend_area_primer(self, dct=None) :
@@ -274,8 +290,10 @@ class pieceevaluate() :
             self._primer_degene['F'].update({amp[0][0]: [fdegene, fhaplo]})
             self._primer_degene['R'].update({amp[1][0]: [rdegene, rhaplo]})
             #根据引物的原始数量进行排序
-            fvalue = sorted({pri: (sum([dct.get(split_all_from_str(p)[0], 0)+1 for p in pset]) if dct is not None else len(pset), calc_tm_hairpin_homod(pri)) for pri, pset in spdf[0].items()}.items(), key=lambda z : z[1][0], reverse=True)
-            rvalue = sorted({pri: (sum([dct.get(split_all_from_str(p)[0], 0)+1 for p in pset]) if dct is not None else len(pset), calc_tm_hairpin_homod(pri)) for pri, pset in spdr[1].items()}.items(), key=lambda z : z[1][0], reverse=True)
+            #引物覆盖度
+            temp_seq_dict = {iid : seq.replace('-', '') for iid, seq in self._seqdict.items()}
+            fvalue = sorted({pri: (sum([dct.get(split_all_from_str(p)[0], 0)+1 for p in pset]) if dct is not None else len(pset), calc_tm_hairpin_homod(pri), primer_cover(pri, temp_seq_dict)) for pri, pset in spdf[0].items()}.items(), key=lambda z : z[1][0], reverse=True)
+            rvalue = sorted({pri: (sum([dct.get(split_all_from_str(p)[0], 0)+1 for p in pset]) if dct is not None else len(pset), calc_tm_hairpin_homod(pri), primer_cover(pri, temp_seq_dict, reverse=True)) for pri, pset in spdr[1].items()}.items(), key=lambda z : z[1][0], reverse=True)
             tmp_data.setdefault(str(amp), (fdegene, {pri : info for pri, info in fvalue}, rdegene, {pri : info for pri, info in rvalue}))
 
         self._base.warnlog('请注意引物设计和引物评估模块的的熔解温度可能存在差异 / Please Attention TM Of Primer Design Module & Primer Evaluate Maybe Exist Diff')

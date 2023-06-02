@@ -2,11 +2,11 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/03/03
+更改日期: 2023/06/02
 '''
 
 from .piecedefine import *
-from .piecebase import calc_shannon_entropy, list_count, rank_lists_byfirst, generate_shannon_bynum, calc_tm_hairpin_homod, write_json, pos_translate
+from .piecebase import calc_shannon_entropy, list_count, rank_lists_byfirst, generate_shannon_bynum, calc_tm_hairpin_homod, write_json, write_csv, pos_translate
 from .piecedesign import piecedesign
 from .pieceevaluate import pieceevaluate
 from .piecedataprogress import piecedataprogress
@@ -447,7 +447,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2023/03/03
+    更改日期: 2023/06/02
     '''
     #主流程函数
     def maintrunk(self) :
@@ -531,6 +531,8 @@ class piecemain() :
             #评估扩增子覆盖度
             cover_rate = pcel.evaluate_cover_rate()
 
-            if self.__evaluate_opt['save'] : write_json('{}_recommand_area_primer.json'.format(self._base._time), amplicon_info)
+            if self.__evaluate_opt['save'] : 
+                write_json('{}_recommand_area_primer.json'.format(self._base._time), amplicon_info)
+                write_csv('{}_recommand_area_primer.csv'.format(self._base._time), amplicon_info)
 
             if self.__evaluate_opt['blast'] : write_json('{}_final_recommand_area_primer.json'.format(self._base._time), pcel.blast_db_search('{}_recommand_area_primer.json'.format(self._base._time)))
