@@ -1,114 +1,127 @@
-# PMPrimer - Automatically design multiplex PCR primer pairs for diverse templates
-中文说明, [请点击](README_CN.md)
-## 0x0 Module Information
-> This software need third package : primer3-py, biopython, seaborn etc.
+# PMPrimer: a Python-based tool for automated design and evaluation of multiplex PCR primer pairs for diverse templates
 
-> If want use BLAST, need local support ncbi-blast-2.13.0+.
+Unlike single sequence, primer design on multiple sequences needs data quality filtering, multiple sequence alignment, conservative region identification, primer design for multiple templates, and evaluation of coverage and taxon specificity on multiple templates.
 
-> This software running on Linux, not mean it cannot work on Windows.
-+ Input file
-+ Basic process for data
-+ Primer design and extract of multiple alignment
-+ Amplicon design and evaluate
-+ Debug mode
+PMPrimer is a Python-based tool for automated design and evaluation of multiplex PCR primer pairs for diverse templates. The greatest strength of PMPrimer is the ability to identify conservative region using Shannon's entropy method, tolerate gaps using haplotype-based method, and evaluate multiplex PCR primer pairs according to template coverage and taxon specificity. PMPrimer were tested in datasets with diversified conservation and data size, including *tuf* genes of Staphylococci, *hsp65* genes of Mycobacteriaceae, and 16S ribosomal RNA genes of Archaea. By comparison with previously designed primers and existing tools, PMPrimer has outstanding performance, such as automation, big data support, higher accuracy, and reasonable running time. 
 
-## 0x1 Installation
-1. Install by code
-   
-   Download source code from this repo, and install primer3-py, biopython, seaborn in your devices, then you can run this software by use `python3 pmprimer.py`
+PMPrimer is a command-line tool. To handle diversified characteristics of target sequences, PMPrimer has multiple built-in parameters to make appropriate adjustments for data processing. The only necessary input file for PMPrimer is multiple sequences of target gene in FASTA format. Results are provided as JSON and CSV format files, which can be easily loaded into other programming languages for further analysis.
 
-2. Install by pip
-   
-   Install this software by use command `pip(or pip3 for python3) install PMPrimer`.
-   
-   If u use pip to install this software, pip will automatically install dependency packages and add a command pmprimer in your system.
+## 0x01 Installation
+The software requires third-party packages as follow: primer3-py, biopython, matplotlib, pandas, seaborn and blast (2.13.0).
 
-## 0x2 Usage
+All python-based third-party packages will be automatically installed by pip. User needs install blast according to the documentation at [BLAST OFFICIAL WEBSITE](http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs).
+
+PMPrimer has been tested with Python3.8+ on Linux and Windows.
+
+1. Install by pip
+
+    We recommend that you install PMPrimer through pip using the command: `pip install PMPrimer` or `pip3 install PMPrimer`. pip will automatically install all dependency packages and add a command "pmprimer" in your system.
+
+2. Install by code
+
+    Download PMPrimer source code from this repository, decompress the source code, install all dependency packages by yourself in your system, then you can run this software by use `python3 PMPrimer/pmprimer.py`.
+
+## 0x02 Usage
+
+Use help command `pmprimer --help` to show usage message. The detailed information is provided as follow.
+
 1. Input file
    > --file -f
 
-    Use like : `pmprimer -f seqs.fasta or --file seqs.fasta`
+    The only necessary input file for PMPrimer is multiple sequences of target gene in FASTA format. It can be unaligned or aligned. If you assign an unaligned file, you need assignment `-a muscle` parameter in primer design model to do multiple sequence alignment.
 
-2. Basic process for data
+    Use like : `pmprimer -f seqs.fasta` or `pmprimer --file seqs.fasta`
+
+2. Basic process
    > --progress -p
+
+    In basic process, PMPrimer assesses data quality, calculates length distribution of input data, filters low quality templates (such as too small and too long templates) according to length distribution, removes redundant templates in terminal taxa in default. If input file has been manually checked, you can use `-p notlen` to disable length filter based on length distribution. Similarly, you can use `-p notsameseq` to disable redundant filter based on sequence comparison in terminal taxa. Moreover, if you want to draw heatmap according to distances of multiple templates, you can use `-p matrix` to trigger drawing heatmap according to distances of multiple templates.
 
     All parameter as follows :
     + notlen Do not processing sequences according to distribution of length
-    + notsameseq Do not remove redanduncy sequences according to three levels
-    + matrix Draw heatmap according to mismatch analysis.
-
-    >If length distribution is good, should use 'notlen' prevent removal of minority sequences.
+    + notsameseq Do not remove redundancy sequences in terminal taxa
+    + matrix Draw heatmap according to distances of multiple templates
 
     Add parameters behind -p, use like : `-p notlen notsameseq matrix`, order doesn't matter.
 
-3. Primer design and extract of multiple alignment
+3. Primer design
    >--alldesign -a
 
+    This module includes three steps, multiple sequence alignment by `muscle` parameter, conservative region identification by `threshold minlen gaps merge` parameters, and primer design by `tm primer2` parameters. If you assign an unaligned file, you must asign `muscle` parameter in multiple sequence alignment step. You can adjust parameters for conservative region identification to obtain optimal conservative regions. You need assign `primer2` to trigger primer design when you get optimal conservative regions.
+
     All parameter as follows :
-    + threshold Threshold for identify conservative region, default is 0.95, use like : threshold:0.95
-    + minlen Minimum continues length when identify conservative regions, default is 15bp, use like : minlen:15
-    + gaps Maximum rate of gaps, default is 0.1, use like : gaps:1.0
-    + tm Default TM, default is 50, use like : tm:50.0
-    + muscle Use MUSCLE to align sequences and save as another file
+    + muscle Use MUSCLE to align multiple sequences, the alignment sequences will be saved as *.mc.fasta
+    + threshold Threshold for identify conservative region, default is 0.95 frequency for major allele, use like threshold:0.95
+    + minlen Minimum length for identifying conservative region, default is 15, use like minlen:15
+    + gaps Maximum rate of gaps, default is 0.1, use like gaps:0.1
     + merge Use merge module to merge conservative regions
-    + primer2 Primer design and extract
-    + pdetail2 Information of primer2
+    + rank1 Display the diversity score ranking of non conservative regions
+    + rank2 Display the diversity score ranking of conservative regions
+    + haplo Display the count of haploType sequences of conservative regions
+    + tm Minimum melting temperature, default is 50, use like tm:50.0
+    + primer2 Primer design
 
-    add parameters behind -a, like : `-a threshold:0.96 minlen:16 merge primer2`, order doesn't matter.
+    Add parameters behind -a, use like : `-a threshold:0.96 minlen:16 merge primer2`, order doesn't matter.
 
-4. Amplicon design and evaluate
+4. Amplicon selection and evaluation
    > --evaluate -e
 
+    To evaluate amplicon specificity, we use blast to align amplicon primer pairs to target fasta files. We can assign multiple target fasta files by using "," to split file pathes.
+
     All parameter as follows :
-    + hpcnt Maximum count of haploType, default is 10, use like : hpcnt:10
+    + hpcnt Maximum count of haploType sequences, default is 10, use like hpcnt:10
     + minlen Minimum length of amplicon, default is 150bp, use like : minlen:150
     + maxlen Maximum length of amplicon, default is 1500bp, use like : maxlen:1500
-    + blast Use fasta to create blast db and search, use ',' split different files, use like : blast:../taxo1.fasta,homo.fasta
-    + rmlow Remove TM lower than configure in Design module
+    + blast Use blast to evaluate amplicon specificity by aligning amplicon primer pairs to target fasta files, use ',' to split multiple target files, use like blast:seqs.fasta,hosts.fasta
+    + rmlow Remove primers with melting temperature lower than parameter "tm" in primer design module
     + save Save final results
 
-    add parameters behind -e, like : `-e hpcnt:50 maxlen:1200 save`, order doesn't matter.
+    Add parameters behind -e, use like : `-e hpcnt:50 maxlen:1200 save`, order doesn't matter.
 
 5. Debug mode
    > --debuglevel -d
 
-    parameter is number :
+    All parameter is number :
     + 1 Basic debug info
-    + 2 Mocule debug info
+    + 2 Module debug info
     + 4 Complex debug info
 
-    If need debug info, use `-d 1` in normal conditions, this number use binary calculate.
+    If need debug info, use like : `-d 1` in normal conditions, this number use binary calculate.
 
-## 0x3 Tips
-1. If input file is alignments, use like :
+## 0x03 Tips
+1. If input file need data process, use like :
 
-    `pmprimer -f seqs.fasta -a merge primer2 -e hpcnt:70 save`
+    `pmprimer -f seqs.fasta -p default`
+    > Filt sequences according to distribution of length,remove redundancy sequences in terminal taxa.
 
-2. If input file need data process, use like :
+2. If input file is alignments, use like :
 
-    `pmprimer -f seqs_need_filt.fasta -p default`
-    > this command will process data according to major length and different third level when same sequences.
+    `pmprimer -f seqs.fasta -a primer2`
 
 3. If input file need align, use like : 
 
-    `pmprimer -f seqs_need_align.fasta -a muscle merge primer2 -e hpcnt:70 save`
-    > this command will save alignments as 'seqs_need_align.mc.fasta'
+    `pmprimer -f seqs.fasta -a muscle merge primer2`
+    > This command will save alignments as 'seqs.mc.fasta'
 
-## 0x4 Datasets In Paper
+4. You can use `rank1`, `rank2`, `haplo` parameters to check if the conservative region meets your requirements
+   
+    `pmprimer -f seqs.fasta -a rank1 rank2 haplo`
+    
+    If you think the current conservative regions is optimal, use `primer2` to trigger primer design
 
-Dataset in paper can obtained by https://github.com/AGIScuipeng/PMPrimer_datasets
+## 0x04 Datasets In Paper
+
+Dataset in paper can obtained from [PMPrimer Datasets](https://github.com/AGIScuipeng/PMPrimer_datasets)
 
 1. 16S ribosomal RNA (rRNA) genes of Archaea
-   
-   Archaea_16SrRNA.rep.mc.fasta is more than 200MB, so only upload original file to github, need use use MUSCLE5 to align sequences and save output file as `Archaea_16SrRNA.rep.mc.fasta` or use `pmprimer -f Archaea_16SrRNA.rep.fasta -p notlen notsameseq muscle` to align sequences.
    
    Command in paper is : `pmprimer -f Archaea_16SrRNA.rep.mc.fasta -a threshold:0.85 gaps:1.0 merge primer2 haplo tm:45.0 -e hpcnt:600 save`
 
 > 
-2. hsp65 (groEL2) genes of Mycobacteriaceae
+1. hsp65 (groEL2) genes of Mycobacteriaceae
    
    Command in paper is : `pmprimer -f Mycobacteriaceae_groEL2.filt.mc.fasta -a primer2 -e hpcnt:70 save`
 > 
-3. tuf genes of Staphylococci
+1. tuf genes of Staphylococci
    
    Command in paper is : `pmprimer -f Staphylococcus_tuf.filt.mc.fasta -a threshold:0.995 minlen:5 merge primer2 -e save`
