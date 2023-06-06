@@ -109,7 +109,7 @@ Use help command `pmprimer --help` to show usage message. The detailed informati
 
      The final result is saved as `JSON` and `CSV` format files (`timestamp`_recommand_area_primer.json and `timestamp`_recommand_area_primer.csv). The JSON file can be easily loaded into Python, R, or other programming languages for further analysis. The CSV file provides a user readable result file, which has seven columns titled as "Amplicon, Forward degenerate primer, Forward haplotype primers, Forward primer info, Reverse degenerate primer, Reverse haplotype primers, Reverse primer info". In Forward/Reverse primer info, five numbers are included, which are occurrence number of primer in multiple templates, melting temperature of primer, melting temperature of hairpin structure, melting temperature of homodimer structure, and coverage rate of primer in multiple templates.
 
-## 0x03 Tips
+## 0x04 Tips
 1. If input file need data process, use like :
 
     `pmprimer -f seqs.fasta -p default`
@@ -130,7 +130,7 @@ Use help command `pmprimer --help` to show usage message. The detailed informati
     
     After you obtain optimal conservative regions, You can use `primer2` to trigger primer design.
 
-## 0x04 Datasets In Paper
+## 0x05 Datasets In Paper
 
 Dataset in paper can obtained from [PMPrimer Datasets](https://github.com/AGIScuipeng/PMPrimer_datasets)
 
