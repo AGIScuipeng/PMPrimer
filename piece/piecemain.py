@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/06/02
+更改日期: 2023/06/06
 '''
 
 from .piecedefine import *
@@ -167,10 +167,10 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/09/22
+    更改日期: 2023/06/06
     '''
     #根据多样性进行排名
-    def rank_by_diverse(self, pcds, area, msg, logsw=False) :
+    def rank_by_diverse(self, pcds, area, msg1, msg2, logsw=False) :
         allshannon = []
         #计算区间的多样性
         for rang in area :
@@ -180,8 +180,8 @@ class piecemain() :
         #根据多样性进行排名
         stdlist, arealist = rank_lists_byfirst(allshannon, area, reverse=True)
         if logsw :
-            self._base.baselog('\n{}多样性排名为：/ Non Conservative Area Rank Is :'.format(msg))
-            for idx, std in enumerate(stdlist) : self._base.baselog('[{}]\tScore : {};\tArea : {}'.format(idx+1, std, arealist[idx]))
+            self._base.baselog('\n{} Rank Is :'.format(msg2))
+            for idx, std in enumerate(stdlist) : self._base.baselog('[{}]\tScore : {};\tRegion : {}'.format(idx+1, std, arealist[idx]))
 
         return arealist
 
@@ -389,7 +389,7 @@ class piecemain() :
 
             #根据一次设计的结果获取到二次设计的区间
             if len(self._area_statistic[rang[0]]['F']) == 0 or len(self._area_statistic[rang[0]]['R']) == 0 :
-                self._base.warnlog('区间{0}无引物/ Area {0} No Primer'.format(rang)); continue
+                self._base.warnlog('区间{0}无引物/ Region {0} No Primer'.format(rang)); continue
             tmp_rangef = sorted(self._area_statistic[rang[0]]['F'].items(), key=lambda z : z[1], reverse=True)[0][0].replace('[', '').replace(']', '').split(',')
             tmp_ranger = sorted(self._area_statistic[rang[0]]['R'].items(), key=lambda z : z[1], reverse=True)[0][0].replace('[', '').replace(']', '').split(',')
             tmp_rangef, tmp_ranger = [int(i) for i in tmp_rangef], [int(i) for i in tmp_ranger]
@@ -447,7 +447,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2023/06/02
+    更改日期: 2023/06/06
     '''
     #主流程函数
     def maintrunk(self) :
@@ -480,29 +480,29 @@ class piecemain() :
             #挖掘出所有符合条件的保守区间
             conser = pcds.detect_conser_area_shannon(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon,
                                                     self._comparedata if 'muscle' in self.args.alldesign else self._origindata)
-            self._base.baselog('保守区间列表 / List Of Conservative Area is : \n{0}'.format(conser))
+            self._base.baselog('List Of Conservative Regions is : \n{0}'.format(conser))
 
             #挖掘出所有符合条件的非保守区间
             nonconser = pcds.detect_non_conser_area(self._comparedata_shannon if 'muscle' in self.args.alldesign else self._origindata_shannon, conser)
-            self._base.baselog('非保守区间列表 / List Of Non Conservative Area is : \n{0}'.format(nonconser))
+            self._base.baselog('List Of Non Conservative Regions is : \n{0}'.format(nonconser))
 
             #if self.__evaluate_opt['save'] : write_json('{}_conser_nonconser.json'.format(self._base._time), {'conser' : conser, 'nonconser' : nonconser})
 
             #非保守区间多样性
-            nonconser_sort = self.rank_by_diverse(pcds, nonconser, '非保守区间', 'rank1' in self.args.alldesign)
+            nonconser_sort = self.rank_by_diverse(pcds, nonconser, '非保守区间', 'Non Conservative Regions', 'rank1' in self.args.alldesign)
 
             #保守区间多样性
-            if 'rank2' in self.args.alldesign : conser_sort = self.rank_by_diverse(pcds, conser, '保守区间', True)
+            if 'rank2' in self.args.alldesign : conser_sort = self.rank_by_diverse(pcds, conser, '保守区间', 'Conservative Regions', True)
 
             #所有区间的多样性排名，保守和非保守分别排名是必须的，但是全排序不是必须的
-            if 'rankall' in self.args.alldesign : self.rank_by_diverse(pcds, conser+nonconser, '所有区间', True)
+            if 'rankall' in self.args.alldesign : self.rank_by_diverse(pcds, conser+nonconser, '所有区间', 'All Regions', True)
 
             #根据haplotype进行分析和后续的引物设计
             self._alltype = {}
-            if 'haplo' in self.args.alldesign : self._base.baselog('\n保守区间的haplotype情况如下：')
+            if 'haplo' in self.args.alldesign : self._base.baselog('\nHaplotype Sequence Number Of Conservative Region Is:')
             for rang in conser :
                 alltype = pcds.detect_haplotype(self._comparedata if 'muscle' in self.args.alldesign else self._origindata, rang[0], rang[1])
-                if 'haplo' in self.args.alldesign : self._base.baselog('Area {}; \t {}'.format(rang, len(alltype)))
+                if 'haplo' in self.args.alldesign : self._base.baselog('Region {}; \t {}'.format(rang, len(alltype)))
                 self._alltype.setdefault(str(rang), alltype)
 
             if 'primer' in self.args.alldesign or 'primer2' in self.args.alldesign :

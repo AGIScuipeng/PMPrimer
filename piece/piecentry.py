@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/02/27
+更改日期: 2023/06/06
 '''
 
 from .__auxiliary__ import __version__
@@ -18,7 +18,7 @@ import sys, locale
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/03/03
+更改日期: 2023/06/06
 '''
 #封装包程序的入口
 def entry() :
@@ -70,9 +70,9 @@ def entry() :
                                 \nminlen \t\tMinimum length for identifying conservative region, default is 15, use like minlen:15\
                                 \ngaps \t\tMaximum rate of gaps, default is 0.1, use like gaps:0.1\
                                 \nmerge \t\tUse merge module to merge conservative regions\
-                                \nrank1 \t\tDisplay the diversity score ranking of non conservative regions\
-                                \nrank2 \t\tDisplay the diversity score ranking of conservative regions\
-                                \nhaplo \t\tDisplay the count of haploType sequences of conservative regions\
+                                \nrank1 \t\tRank according to diversity score of non conservative regions and display them\
+                                \nrank2 \t\tRank according to diversity score of conservative regions and display them\
+                                \nhaplo \t\tDisplay haploType sequence number of conservative regions\
                                 \ntm \t\tMinimum melting temperature, default is 50, use like tm:50.0\
                                 \nprimer2 \tPrimer design''')
         paramparse.add_argument('--evaluate', '-e', nargs='+', default=['default'], 

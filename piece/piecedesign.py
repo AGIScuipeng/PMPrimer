@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/03/06
+更改日期: 2023/06/06
 '''
 
 from .piecedefine import *
@@ -214,13 +214,13 @@ class piecedesign() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/10/14
+    更改日期: 2023/06/06
     '''
     #计算区域的多样性，结果越接近1，多样性越高
     def calc_area_diverse(self, shannons, posl, posr) :
         self._base.debuglog(BASE_DEBUG_LEVEL3, shannons[posl-1:posr])
         allshannon = shannons[posl-1:posr]
-        return round(sum(allshannon)/len([x for x in allshannon if x]), 8)
+        return round(sum(allshannon)/len(allshannon), 8)
 
     '''
     创建人员: Nerium

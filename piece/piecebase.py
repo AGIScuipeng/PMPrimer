@@ -75,7 +75,7 @@ def traversal_diff_dict(*traversaled, one=False) :
 #写入CSV文件
 def write_csv(fname, data) :
     with open(fname, 'w') as tf :
-        tf.write('#Amplicon, Forward degenerate primer, Forward primers, Primers info, Reverse degenerate primer, Reverse primers, Primers info\n')
+        tf.write('#Amplicon, Forward degenerate primer, Forward haplotype primers, Forward primer info, Reverse degenerate primer, Reverse haplotype primers, Reverse primer info\n')
         for amp, ainfo in data.items() :
             tf.write('{},{},{},{},{},{},{}\n'.format(amp.replace(',', ' '), ainfo[0], len(ainfo[1]), len(ainfo[1]), ainfo[2], len(ainfo[3]), len(ainfo[3])))
             for ret, e in traversal_diff_dict(ainfo[1], ainfo[3], one=True) :
