@@ -8,6 +8,6 @@
 
 from piece.piecentry import entry
 
-#打包前入口
+#非打包运行入口
 if __name__ == '__main__' :
     entry()

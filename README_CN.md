@@ -1,5 +1,6 @@
 # 扩增子流程化
 English ReadMe, [Click Here](README_EN.md)
+
 ## 0x0 模块解析
 > 本软件需要依赖第三方：primer3-py、biopython、seaborn等；
 

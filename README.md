@@ -69,7 +69,7 @@ Use help command `pmprimer --help` to show usage message. The detailed informati
     To evaluate amplicon specificity, we use blast to align amplicon primer pairs to target fasta files. We can assign multiple target fasta files by using "," to split file pathes.
 
     All parameter as follows :
-    + **hpcnt** Maximum count of haploType sequences, default is 10, use like hpcnt:10
+    + **hpcnt** Maximum count of primer haploType sequences, default is 10, use like hpcnt:10
     + **minlen** Minimum length of amplicon, default is 150bp, use like : minlen:150
     + **maxlen** Maximum length of amplicon, default is 1500bp, use like : maxlen:1500
     + **blast** Use blast to evaluate amplicon specificity by aligning amplicon primer pairs to target fasta files, use ',' to split multiple target files, use like blast:seqs.fasta,hosts.fasta
@@ -136,11 +136,11 @@ Dataset in paper can obtained from [PMPrimer Datasets](https://github.com/AGIScu
 
 1. 16S ribosomal RNA (rRNA) genes of Archaea
    
-   Command in paper is : `pmprimer -f Archaea_16SrRNA.rep.mc.fasta -a threshold:0.85 gaps:1.0 merge primer2 haplo tm:45.0 -e hpcnt:600 save`
+   Command in paper is : `pmprimer -f Archaea_16SrRNA.rep.mc.fasta -a threshold:0.85 gaps:1.0 merge primer2 tm:45.0 -e hpcnt:600 save`
 
 2. hsp65 (groEL2) genes of Mycobacteriaceae
    
-   Command in paper is : `pmprimer -f Mycobacteriaceae_groEL2.filt.mc.fasta -a primer2 -e hpcnt:70 save`
+   Command in paper is : `pmprimer -f Mycobacteriaceae_groEL2.filt.mc.fasta -a primer2 -e hpcnt:30 save`
 
 3. tuf genes of Staphylococci
    
