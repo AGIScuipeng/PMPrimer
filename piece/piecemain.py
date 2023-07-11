@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/06/06
+更改日期: 2023/07/11
 '''
 
 from .piecedefine import *
@@ -18,7 +18,7 @@ import os
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/03/03
+更改日期: 2023/07/11
 '''
 #流程主类
 class piecemain() :
@@ -447,7 +447,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2023/06/06
+    更改日期: 2023/07/11
     '''
     #主流程函数
     def maintrunk(self) :
@@ -532,7 +532,7 @@ class piecemain() :
             cover_rate = pcel.evaluate_cover_rate()
 
             if self.__evaluate_opt['save'] : 
-                write_json('{}_recommand_area_primer.json'.format(self._base._time), amplicon_info)
-                write_csv('{}_recommand_area_primer.csv'.format(self._base._time), amplicon_info)
+                write_json('{}_recommand_region_primer.json'.format(self._base._time), amplicon_info)
+                write_csv('{}_recommand_region_primer.csv'.format(self._base._time), amplicon_info, cover_rate, len(pcel._seqdict), reso, pcel._statistic_cnt, pcel._effective_len)
 
-            if self.__evaluate_opt['blast'] : write_json('{}_final_recommand_area_primer.json'.format(self._base._time), pcel.blast_db_search('{}_recommand_area_primer.json'.format(self._base._time)))
+            if self.__evaluate_opt['blast'] : write_json('{}_final_recommand_region_primer.json'.format(self._base._time), pcel.blast_db_search('{}_recommand_area_primer.json'.format(self._base._time)))

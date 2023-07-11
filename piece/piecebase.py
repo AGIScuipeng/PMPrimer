@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/06/02
+更改日期: 2023/07/11
 '''
 
 from .piecedefine import *
@@ -27,59 +27,34 @@ def write_json(fname, data) :
 创建人员: Nerium
 创建日期: 2023/06/02
 更改人员: Nerium
-更改日期: 2023/06/02
+更改日期: 2023/07/11
 '''
 #按顺序同时遍历多个键值对个数不同的dict
-'''
-如
-a = {1:11, 2:22}
-b = {3:33, 4:44, 5: 55}
-c = {6:66}
-如果one=False，则是遍历的元素顺序迭代结果
-那么for k, v, e in traversal_diff_dict(a, b, c)的k顺序为：1,3,6,2,4,5；v同理
-e为是否遍历一轮，是为True，否为False
+def traversal_diff_dict(*traversaled) :
+    itl, maxl = [], 0
+    for ele in traversaled : itl.append(iter(ele.items())); maxl = max(maxl, len(ele))
 
-如果one=True，则是迭代一轮的遍历结果
-那么for ret, e in traversal_diff_dict(a, b, c, one=True)的ret为遍历一轮的[[1,11],[3,33],[6,66]；e为True。然后继续下一轮
-'''
-def traversal_diff_dict(*traversaled, one=False) :
-    #保存每个dict的key
-    ed_keys = []
-    for ele in traversaled : ed_keys.append([k for k in ele.keys()])
-
-    #判断所有dict的key是否都遍历过了
-    while sum([len(e) for e in ed_keys]) :
-        #遍历第i个dict
-        if one is True : retone = []
-        for i, ele in enumerate(traversaled) : 
-            #如果dict未遍历的keys不为0
-            if len(ed_keys[i]) :
-                #获取第一个key
-                t_key = ed_keys[i][0]
-                #通过遍历的当前dict的当前key获取value，遍历过一个删除一个
-                e = ele[t_key]; ed_keys[i].pop(0)
-                #使用yield返回当前dict的当前的item
-                if one is True : retone.append([t_key, e])
-                else : yield t_key, e, i == len([e for e in ed_keys if len(e)])
-            else :
-                if one is True : retone.append(['', ''])
-
-        if one is True : yield retone, True
+    for _ in range(maxl) :
+        yield [next(x, ['', ()]) for x in itl]
 
 '''
 创建人员: Nerium
 创建日期: 2023/06/02
 更改人员: Nerium
-更改日期: 2023/06/02
+更改日期: 2023/07/11
 '''
 #写入CSV文件
-def write_csv(fname, data) :
+def write_csv(fname, amplicon_info, cover_rate, seqcnt, reso, statistic_cnt, effect_len) :
+    import re
     with open(fname, 'w') as tf :
-        tf.write('#Amplicon, Forward degenerate primer, Forward haplotype primers, Forward primer info, Reverse degenerate primer, Reverse haplotype primers, Reverse primer info\n')
-        for amp, ainfo in data.items() :
-            tf.write('{},{},{},{},{},{},{}\n'.format(amp.replace(',', ' '), ainfo[0], len(ainfo[1]), len(ainfo[1]), ainfo[2], len(ainfo[3]), len(ainfo[3])))
-            for ret, e in traversal_diff_dict(ainfo[1], ainfo[3], one=True) :
-                tf.write(' , ,{},{}, ,{},{}\n'.format(ret[0][0], str(ret[0][1]).replace(',' ,' '), ret[1][0], str(ret[1][1]).replace(',' ,' ')))
+        tf.write('#Amplicon, Coverage, Taxon specificity, Effective length, Forward degenerate primer, Forward haplotype primers, Forward primer info, Reverse degenerate primer, Reverse haplotype primers, Reverse primer info\n')
+        for amp, ainfo in amplicon_info.items() :
+            t = [re.sub('\D', '', x) for x in amp.split(',')]
+            amp_key = '[{},{}]'.format(t[0], t[-1])
+            tf.write('{},{},{},{},{},{},{},{},{},{}\n'.format(amp.replace(',', ' '), cover_rate[amp_key]/seqcnt, str([len(reso[amp_key][i])/len(l) for i, l in enumerate(statistic_cnt)]).replace(',', ''),\
+                 effect_len[amp_key], ainfo[0], len(ainfo[1]), len(ainfo[1]), ainfo[2], len(ainfo[3]), len(ainfo[3])))
+            for ret in traversal_diff_dict(ainfo[1], ainfo[3]) :
+                tf.write(' , , , , ,{},{}, ,{},{}\n'.format(ret[0][0], str(ret[0][1]).replace(',' ,' '), ret[1][0], str(ret[1][1]).replace(',' ,' ')))
 
 '''
 创建人员: Nerium

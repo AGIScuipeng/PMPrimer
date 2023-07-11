@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="PMPrimer",
-    version="1.0.2",
+    version="1.0.3",
     author="Nerium",
     description="automated design of multiplex PCR primer pairs for diverse templates",
     long_description=long_description,
@@ -15,7 +15,9 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
+        "Environment :: Console"
+        "Operating System :: Microsoft :: Windows"
+        "Operating System :: POSIX :: Linux"
     ],
     entry_points={
         'console_scripts': [
