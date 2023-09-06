@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/06/06
+更改日期: 2023/09/06
 '''
 
 from .__auxiliary__ import __version__
@@ -18,7 +18,7 @@ import sys, locale
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/06/06
+更改日期: 2023/09/06
 '''
 #封装包程序的入口
 def entry() :
@@ -38,8 +38,11 @@ def entry() :
                                 \nthreshold \t保守区间判定的阈值，默认为0.95，使用 threshold:0.95\
                                 \nminlen \t\t保守区间连续长度最小值，默认为15bp，使用 minlen:15\
                                 \ngaps \t\t空白符占比最高比例，默认为0.1，使用 gaps:0.1\
-                                \ntm \t\t熔解温度最小值，默认为50，使用 tm:50.0\
                                 \nmerge \t\t保守区间合并\
+                                \nrank1 \t\t展示非保守区间的多样性分数值排名\
+                                \nrank2 \t\t展示保守区间的多样性分数值排名\
+                                \nhaplo \t\t展示保守区间的haploType个数\
+                                \ntm \t\t熔解温度最小值，默认为50，使用 tm:50.0\
                                 \nprimer2 \t引物设计''')
         paramparse.add_argument('--evaluate', '-e', nargs='+', default=['default'], 
                                 help='''扩增子设计和评估，参数有：\
@@ -47,10 +50,6 @@ def entry() :
                                 \nminlen \t\t扩增子区间最小值，默认为150，使用： minlen:150\
                                 \nmaxlen \t\t扩增子区间最大值，默认为1500，使用： maxlen:1500\
                                 \nblast \t\t使用文件建库和查询，多个fasta文件使用,来分隔，使用： blast:../taxo1.fasta,homo.fasta\
-                                \nmerge \t\t多个扩增子合并\
-                                \nrank1 \t\t展示非保守区间的多样性分数值排名\
-                                \nrank2 \t\t展示保守区间的多样性分数值排名\
-                                \nhaplo \t\t展示保守区间的haploType个数\
                                 \nrmlow \t\t去除引物提取熔解温度低于设计模块配置值的引物\
                                 \nsave \t\t保存结果文件''')
         paramparse.add_argument('--debuglevel', '-d', type=int, default=0,
