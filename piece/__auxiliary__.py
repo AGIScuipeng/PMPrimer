@@ -5,7 +5,7 @@
 更改日期: 2022/12/15
 '''
 
-__version__ = '1.0.3'
+__version__ = '1.0.4'
 __author__ = 'Nerium'
 __create__ = '2022/8/31'
 __belong__ = 'AGIS'

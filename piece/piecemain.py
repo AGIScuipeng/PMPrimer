@@ -535,4 +535,4 @@ class piecemain() :
                 write_json('{}_recommand_region_primer.json'.format(self._base._time), amplicon_info)
                 write_csv('{}_recommand_region_primer.csv'.format(self._base._time), amplicon_info, cover_rate, len(pcel._seqdict), reso, pcel._statistic_cnt, pcel._effective_len)
 
-            if self.__evaluate_opt['blast'] : write_json('{}_final_recommand_region_primer.json'.format(self._base._time), pcel.blast_db_search('{}_recommand_area_primer.json'.format(self._base._time)))
+            if self.__evaluate_opt['blast'] : write_json('{}_final_recommand_region_primer.json'.format(self._base._time), pcel.blast_db_search('{}_recommand_region_primer.json'.format(self._base._time)))
