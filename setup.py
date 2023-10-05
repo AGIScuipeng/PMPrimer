@@ -15,9 +15,9 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
-        "Environment :: Console"
-        "Operating System :: Microsoft :: Windows"
-        "Operating System :: POSIX :: Linux"
+        "Environment :: Console",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX :: Linux",
     ],
     entry_points={
         'console_scripts': [
