@@ -145,3 +145,9 @@ Dataset in paper can obtained from [PMPrimer Datasets](https://github.com/AGIScu
 3. tuf genes of Staphylococci
    
    Command in paper is : `pmprimer -f Staphylococcus_tuf.filt.mc.fasta -a threshold:0.995 minlen:5 merge primer2 -e save`
+
+## 0x06 Citing
+Please cite this paper when useing PMPrimer for your publications.
+> A tool to automatically design multiplex PCR primer pairs for specific targets using diverse templates
+
+> https://doi.org/10.1038/s41598-023-43825-0
