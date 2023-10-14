@@ -160,6 +160,7 @@ class piecedataprogress() :
     #物种内计算差异矩阵
     def calc_mismath_matrix(self) :
         tmp_spes = {}
+        if len(self._data) == 1 : self._base.errorlog('序列只有1一条无法计算差异图/Cannot Calculate Matrix Because Only 1 Sequence.')
         #分成物种存储相应id, seq
         for id, seq in self._data.items() :
             #后续可能要根据配置的物种等名称进行统计，故保留注释代码

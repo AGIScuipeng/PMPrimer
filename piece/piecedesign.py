@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/06/06
+更改日期: 2023/10/14
 '''
 
 from .piecedefine import *
@@ -170,7 +170,7 @@ class piecedesign() :
         posl, posr, seqlen, posmem, mem, window = 1, 1, len(shannons), [], [1.0]*2, pwindow
 
         #如果保守区域个数<2 且 窗口<4 则扩大窗口继续尝试
-        while len(posmem) < 2 and window < 4 :
+        while len(posmem) < 1 and window < 4 :
             while posr < seqlen :
                 while calc_conserve_termina_shannon(shannons, posl, posr, mem, threshold, window=window) and posr < seqlen : posr += 1
                 if posr - posl + (1 if posr-posl == 0 else 0) >= minlen and mem[1] <= threshold : posmem.append([posl, posr-1 if posr < seqlen and posl != posr else posr])
@@ -187,11 +187,11 @@ class piecedesign() :
                 tmp_rate = [seq[ibp] for seq in seqdict.values()].count('-')/seqcnt
                 if tmp_rate >= 0.9 : tcnt += 1
                 if tmp_rate >= self.__design_opt['gaps'] : posmem.remove(rang); rmflag = True; self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} {2}空白符占比 {1:.2f}% 区间删除/{0} Deleted For {2} Gaps Rate {1:.2f}%'.format(rang, tmp_rate*100, ibp+1)); break
-            if rang[1] - rang[0] + 1 - tcnt < 15 and rmflag is not True : posmem.remove(rang); self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 有效长度不足15/ Area {0} Truly Length Less Than 15 bp'.format(rang))
+            if rang[1] - rang[0] + 1 - tcnt < 15 and rmflag is not True : posmem.remove(rang); self._base.debuglog(BASE_DEBUG_LEVEL1, '{0} 有效长度不足15/ Region {0} Truly Length Less Than 15 bp'.format(rang))
 
 
         #没有足够的保守区间，程序直接退出
-        if len(posmem) < 2 : self._base.errorlog('\n香农熵中断和延续法无法探测到足够的保守区域/ Shannon Terminate Or Continue Cannot Detect Enough Conservate Area')
+        if len(posmem) < 2 : self._base.errorlog('\n香农熵中断和延续法无法探测到足够的保守区域/ Shannon Terminate Or Continue Cannot Detect Enough Conserved Region')
         self._base.successlog('\r比对后序列的所有保守区域探测完毕')
         #[[57,77], [165,184], [339,360], [453,474], [698,717], [835,852]]
         #[[148,168], [569,589]]

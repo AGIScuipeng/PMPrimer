@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/09/06
+更改日期: 2023/10/14
 '''
 
 from .piecedefine import *
@@ -242,11 +242,19 @@ def calc_gaps_in_region(seq, ppos, llen, reverse=False) :
 创建人员: Nerium
 创建日期: 2022/10/27
 更改人员: Nerium
-更改日期: 2023/09/06
+更改日期: 2023/10/14
 '''
 #从字符串中分离出id，属，种，亚种
 def split_all_from_str(string) :
+    global FASTA_FORMAT_WARN
     strsplit = string.split(' ')
+
+    if len(strsplit) < 2 :
+        if FASTA_FORMAT_WARN :
+            print('\033[0;36;40m{}\033[0m'.format('Please try to maintain the format of fasta like >id genus species variant subspecies, separated by spaces, and replace the rest \
+with your content except for variant.'))
+            FASTA_FORMAT_WARN -= 1
+        return None
 
     if strsplit[1] == 'Unclassified' or len(strsplit) < 4 : return None
 

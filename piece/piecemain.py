@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/07/11
+更改日期: 2023/10/14
 '''
 
 from .piecedefine import *
@@ -18,7 +18,7 @@ import os
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/07/11
+更改日期: 2023/10/14
 '''
 #流程主类
 class piecemain() :
@@ -167,7 +167,7 @@ class piecemain() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2023/06/06
+    更改日期: 2023/10/14
     '''
     #根据多样性进行排名
     def rank_by_diverse(self, pcds, area, msg1, msg2, logsw=False) :
@@ -178,7 +178,11 @@ class piecemain() :
             allshannon.append(areashannon)
 
         #根据多样性进行排名
-        stdlist, arealist = rank_lists_byfirst(allshannon, area, reverse=True)
+        rank_res = rank_lists_byfirst(allshannon, area, reverse=True)
+        if len(rank_res) :
+            stdlist, arealist = rank_res
+        else :
+            stdlist, arealist = [], []
         if logsw :
             self._base.baselog('\n{} Rank Is :'.format(msg2))
             for idx, std in enumerate(stdlist) : self._base.baselog('[{}]\tScore : {};\tRegion : {}'.format(idx+1, std, arealist[idx]))
@@ -463,6 +467,7 @@ class piecemain() :
             pcdp.check_info()
 
             self._origindata = pcdp.filt_data()
+            if len(self._origindata) == 0 : self._base.errorlog('清洗后序列数为0/Number Of Sequences After Cleaning is 0.')
 
             self.args.file = self.args.file.replace('.fasta', '.filt.fasta')
             pcdp.write_in_file(self.args.file)
