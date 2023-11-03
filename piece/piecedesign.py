@@ -20,13 +20,14 @@ import subprocess, platform
 #多序列比对、保守区间遍历、PCR设计等
 class piecedesign() :
     def __init__(self, pbase, todo_path, filepath, design_opt) -> None:
+        import re
+        import os
         self._todo_path = todo_path
         self.__design_opt = design_opt
         self.__platform = platform.system()
 
         self.filepath = filepath
-        self.tmpfile_path = self.filepath.replace('.fasta', '.mc.fasta') if self.filepath is not None and '.fasta' in self.filepath else pbase.errorlog('文件路径为空，或命名错误')
-
+        self.tmpfile_path = re.sub(r"\.fasta|\.afa|\.fa", ".mc.fasta", self.filepath) if self.filepath is not None and os.path.splitext(self.filepath)[1] in [ '.fasta', '.afa', '.fa'] else pbase.errorlog('文件路径为空，或命名错误')
         self._base = pbase
 
     '''
