@@ -5,13 +5,14 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="PMPrimer",
-    version="1.0.5",
+    version="1.0.6",
     author="Nerium",
     description="automated design of multiplex PCR primer pairs for diverse templates",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/AGIScuipeng/PMPrimer",
     packages=setuptools.find_packages(),
+    include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

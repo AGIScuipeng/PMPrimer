@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2023/10/14
+更改日期: 2024/04/10
 '''
 
 from .piecedefine import *
@@ -335,7 +335,7 @@ def generate_rep(bps, reverse=False) :
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2022/12/09
+更改日期: 2024/04/10
 '''
 #基础模块，log等功能都在其中
 class piecebase() :
@@ -347,19 +347,19 @@ class piecebase() :
     创建人员: Nerium
     创建日期: 2022/08/31
     更改人员: Nerium
-    更改日期: 2022/11/16
+    更改日期: 2024/04/10
     '''
     def baselog(self, msg, ends='\n') :
-        print(msg, end=ends)
+        print(msg, end=ends, flush=True)
 
     def debuglog(self, setlevel, msg, ends='\n') :
-        if setlevel & self._level : print('\033[0;33;40m{}\033[0m'.format(msg), end=ends)
+        if setlevel & self._level : print('\033[0;33;40m{}\033[0m'.format(msg), end=ends, flush=True)
 
     def successlog(self, msg, ends='\n') :
-        print('\033[0;32;40m{}\033[0m'.format(msg), end=ends)
+        print('\033[0;32;40m{}\033[0m'.format(msg), end=ends, flush=True)
 
     def warnlog(self, msg, ends='\n') :
-        print('\033[0;36;40m{}\033[0m'.format(msg), end=ends)
+        print('\033[0;36;40m{}\033[0m'.format(msg), end=ends, flush=True)
 
     def errorlog(self, msg, ends='\n') :
         raise SystemExit('\033[0;31;40m{}\033[0m'.format(msg))

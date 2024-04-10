@@ -261,6 +261,8 @@ class pieceevaluate() :
 
         #在种和亚种的层次上都要统计分辨能力
         genuscnt, specnt, subcnt = len(genuset), len(speset), len(subset)
+        if genuscnt == 0 or specnt == 0 or subcnt == 0 : self._base.errorlog('Please try to maintain the format of fasta like >id genus species variant subspecies, separated by spaces, and replace the rest \
+with your content except for variant.')
         self._base.debuglog(BASE_DEBUG_LEVEL1, '属数量：{0}；物种数量：{1}；亚种数量：{2}/ Genus Number: {0}; Species Number: {1}; Subspecies Number: {2}'.format(genuscnt, specnt, subcnt))
 
         self._base.baselog('\n'.join(['{}, 有效长度 {} bp : 属 {}%; 种{:.2f}%; 亚种 {:.2f}%'.format(k, self._effective_len[k], (len(v[0])/genuscnt)*100, (len(v[1])/specnt)*100, (len(v[2])/subcnt)*100) for k, v in reso.items()]))
