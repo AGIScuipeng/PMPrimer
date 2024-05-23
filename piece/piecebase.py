@@ -2,7 +2,7 @@
 创建人员: Nerium
 创建日期: 2022/08/31
 更改人员: Nerium
-更改日期: 2024/04/10
+更改日期: 2024/05/22
 '''
 
 from .piecedefine import *
@@ -298,10 +298,13 @@ def generate_degene(primer_dict, dct=None, limit=12) :
 创建人员: Nerium
 创建日期: 2023/03/02
 更改人员: Nerium
-更改日期: 2023/03/02
+更改日期: 2024/05/22
 '''
 #把bps简并序列列出所有可能性
 def generate_all(bps, idx) :
+    #没有简并引物
+    if len(bps) == 0 : return []
+    #递归结束条件
     if len(bps)-1 == idx : return GENE_RELEASE[bps[idx]]
     return [rep+bpi for rep in GENE_RELEASE[bps[idx]] for bpi in generate_all(bps, idx+1)]
 
@@ -309,7 +312,7 @@ def generate_all(bps, idx) :
 创建人员: Nerium
 创建日期: 2023/03/02
 更改人员: Nerium
-更改日期: 2023/03/02
+更改日期: 2024/05/22
 '''
 #挑选出简并位点找到所有可能，再替换出原始序列
 def generate_rep(bps, reverse=False) :
@@ -327,6 +330,10 @@ def generate_rep(bps, reverse=False) :
             else : tbps += bps[idx]
 
         res_list.append(tbps)
+
+    #如果没有简并引物，那么只有一条引物，加入结果即可
+    if len(rall) == 0 :
+        res_list.append(bps)
 
     if reverse : return [''.join(DEFAULT_DNA_REFLECT_DICT[bp] for bp in res[::-1]) for res in res_list]
     return res_list
